@@ -18,8 +18,8 @@
         <DrawCuboid x1="1"  y1="45" z1="1"  x2="3" y2="45" z2="17" type="sandstone" />      <!-- floor of the arena -->
         <DrawBlock x="4"  y="45" z="1" type="cobblestone" />    <!-- the starting marker -->
         <DrawBlock x="4"  y="45" z="7" type="lapis_block" />     <!-- the destination marker -->
-        <DrawBlock type="chest" x="3" y="46" z="7"/>
-        <DrawItem type="apple" x="3" y="46" z="6"/>
+        <DrawBlock type="chest" x="2" y="46" z="12"/>
+        <DrawItem type="apple" x="3" y="46" z="7"/>
       </DrawingDecorator>
       <ServerQuitFromTimeUp timeLimitMs="20000"/>
       <ServerQuitWhenAnyAgentFinishes/>
@@ -33,6 +33,7 @@
     </AgentStart>
     <AgentHandlers>
       <DiscreteMovementCommands/>
+      <InventoryCommands/>
       <ObservationFromFullStats/>
       <ObservationFromFullInventory flat="false"/>
       <RewardForTouchingBlockType>

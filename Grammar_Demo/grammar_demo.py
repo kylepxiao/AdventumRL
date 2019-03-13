@@ -30,6 +30,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import range
 from builtins import object
+from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
 import MalmoPython
 import json
 import logging
@@ -86,10 +87,29 @@ class TabQAgent(object):
         # assign the new action value to the Q-table
         self.q_table[self.prev_s][self.prev_a] = new_q
 
+    def check_goal_prop(self, world_state):
+        if len(world_state.observations) < 1:
+            return False
+        updated_props = set()
+        observation = json.loads(world_state.observations[-1].text)
+        inventory = observation['inventory']
+        # hardcoded goal proposition
+        appleVar = Variable("apple", "item")
+        inventoryVar = Variable("inventory", "inventory")
+        goal = Proposition("in", [appleVar, inventoryVar])
+        for item in inventory:
+            key = item['type']
+            if goal == Proposition("in", [Variable(key, "item"), inventoryVar]):
+                print(goal)
+                return True
+        return False
+
     def act(self, world_state, agent_host, current_r ):
         """take 1 action in response to the current world state"""
 
         obs_text = world_state.observations[-1].text
+        if self.check_goal_prop(world_state):
+            print("\n\n-----------APPLE GOAL REACHED-----------\n\n")
         obs = json.loads(obs_text) # most recent observation
         self.logger.debug(obs)
         if not u'XPos' in obs or not u'ZPos' in obs:
@@ -124,10 +144,9 @@ class TabQAgent(object):
 
         # try to send the selected action, only update prev_s if this succeeds
         try:
-            a = 1
-            #agent_host.sendCommand(self.actions[a])
-            #self.prev_s = current_s
-            #self.prev_a = a
+            agent_host.sendCommand(self.actions[a])
+            self.prev_s = current_s
+            self.prev_a = a
 
         except RuntimeError as e:
             self.logger.error("Failed to send command: %s" % e)
@@ -155,13 +174,20 @@ class TabQAgent(object):
                 while True:
                     time.sleep(0.1)
                     world_state = agent_host.getWorldState()
-                    if len(world_state.observations) > 0:
-                        print(world_state.observations[-1])
+                    if self.check_goal_prop(world_state):
+                        print("\n\n-----------APPLE GOAL REACHED-----------\n\n")
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
+                        try:
+                            print("YABADABADOO")
+                            agent_host.sendCommand("discardCurrentItem 1")
+                            time.sleep(0.1)
+                            agent_host.sendCommand("discardCurrentItem 0")
+                        except RuntimeError as e:
+                            self.logger.error("Failed to send command: %s" % e)
                         total_reward += self.act(world_state, agent_host, current_r)
                         break
                     if not world_state.is_mission_running:
@@ -180,8 +206,8 @@ class TabQAgent(object):
                 while True:
                     time.sleep(0.1)
                     world_state = agent_host.getWorldState()
-                    if len(world_state.observations) > 0:
-                        print(world_state.observations[-1])
+                    if self.check_goal_prop(world_state):
+                        print("\n\n-----------APPLE GOAL REACHED-----------\n\n")
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
