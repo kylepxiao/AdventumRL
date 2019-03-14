@@ -20,6 +20,7 @@
         <DrawBlock x="4"  y="45" z="7" type="lapis_block" />     <!-- the destination marker -->
         <DrawBlock type="chest" x="2" y="46" z="12"/>
         <DrawItem type="apple" x="3" y="46" z="7"/>
+        <DrawItem type="diamond" x="2" y="46" z="3"/>
       </DrawingDecorator>
       <ServerQuitFromTimeUp timeLimitMs="20000"/>
       <ServerQuitWhenAnyAgentFinishes/>

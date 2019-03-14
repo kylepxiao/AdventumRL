@@ -95,21 +95,25 @@ class TabQAgent(object):
         inventory = observation['inventory']
         # hardcoded goal proposition
         appleVar = Variable("apple", "item")
+        diamondVar = Variable("diamond", "item")
         inventoryVar = Variable("inventory", "inventory")
-        goal = Proposition("in", [appleVar, inventoryVar])
+        goal1 = Proposition("in", [appleVar, inventoryVar])
+        goal2 = Proposition("in", [diamondVar, inventoryVar])
+        sat = False
         for item in inventory:
             key = item['type']
-            if goal == Proposition("in", [Variable(key, "item"), inventoryVar]):
-                print(goal)
-                return True
-        return False
+            currentProp = Proposition("in", [Variable(key, "item"), inventoryVar])
+            if currentProp == goal1 or currentProp == goal2:
+                print(currentProp)
+                sat = True
+        return sat
 
     def act(self, world_state, agent_host, current_r ):
         """take 1 action in response to the current world state"""
 
         obs_text = world_state.observations[-1].text
         if self.check_goal_prop(world_state):
-            print("\n\n-----------APPLE GOAL REACHED-----------\n\n")
+            print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
         obs = json.loads(obs_text) # most recent observation
         self.logger.debug(obs)
         if not u'XPos' in obs or not u'ZPos' in obs:
@@ -175,14 +179,13 @@ class TabQAgent(object):
                     time.sleep(0.1)
                     world_state = agent_host.getWorldState()
                     if self.check_goal_prop(world_state):
-                        print("\n\n-----------APPLE GOAL REACHED-----------\n\n")
+                        print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
                         try:
-                            print("YABADABADOO")
                             agent_host.sendCommand("discardCurrentItem 1")
                             time.sleep(0.1)
                             agent_host.sendCommand("discardCurrentItem 0")
@@ -207,7 +210,7 @@ class TabQAgent(object):
                     time.sleep(0.1)
                     world_state = agent_host.getWorldState()
                     if self.check_goal_prop(world_state):
-                        print("\n\n-----------APPLE GOAL REACHED-----------\n\n")
+                        print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
