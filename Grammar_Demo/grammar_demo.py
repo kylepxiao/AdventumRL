@@ -31,6 +31,8 @@ standard_library.install_aliases()
 from builtins import range
 from builtins import object
 from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
+from MalmoLogicState import *
+from constants import *
 import MalmoPython
 import json
 import logging
@@ -47,7 +49,7 @@ else:
 class TabQAgent(object):
     """Tabular Q-learning agent for discrete state/action spaces."""
 
-    def __init__(self):
+    def __init__(self, mission_file=None, quest_file=None):
         self.epsilon = 0.01 # chance of taking a random action instead of the best
 
         self.logger = logging.getLogger(__name__)
@@ -62,6 +64,8 @@ class TabQAgent(object):
         self.q_table = {}
         self.canvas = None
         self.root = None
+        goal = Proposition("in", [Variable("diamond", "item"), Variable("boundary1", "boundary")])
+        self.host = LogicalAgentHost(mission_file, quest_file, goal)
 
     def updateQTable( self, reward, current_state ):
         """Change q_table to reflect what we have learnt."""
@@ -87,33 +91,16 @@ class TabQAgent(object):
         # assign the new action value to the Q-table
         self.q_table[self.prev_s][self.prev_a] = new_q
 
-    def check_goal_prop(self, world_state):
-        if len(world_state.observations) < 1:
-            return False
-        updated_props = set()
-        observation = json.loads(world_state.observations[-1].text)
-        inventory = observation['inventory']
-        # hardcoded goal proposition
-        appleVar = Variable("apple", "item")
-        diamondVar = Variable("diamond", "item")
-        inventoryVar = Variable("inventory", "inventory")
-        goal1 = Proposition("in", [appleVar, inventoryVar])
-        goal2 = Proposition("in", [diamondVar, inventoryVar])
-        sat = False
-        for item in inventory:
-            key = item['type']
-            currentProp = Proposition("in", [Variable(key, "item"), inventoryVar])
-            if currentProp == goal1 or currentProp == goal2:
-                print(currentProp)
-                sat = True
-        return sat
+    """def check_goal_prop(self, world_state):
+        goal1 = Proposition("in", [itemVars['apple'], inventoryVar])
+        goal2 = Proposition("in", [itemVars['diamond'], inventoryVar])
 
-    def act(self, world_state, agent_host, current_r ):
+        return self.host.state.is_fact(goal1) or self.host.state.is_fact(goal2)"""
+
+    def act(self, world_state, current_r ):
         """take 1 action in response to the current world state"""
 
         obs_text = world_state.observations[-1].text
-        if self.check_goal_prop(world_state):
-            print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
         obs = json.loads(obs_text) # most recent observation
         self.logger.debug(obs)
         if not u'XPos' in obs or not u'ZPos' in obs:
@@ -148,16 +135,22 @@ class TabQAgent(object):
 
         # try to send the selected action, only update prev_s if this succeeds
         try:
-            agent_host.sendCommand(self.actions[a])
+            self.host.sendCommand(self.actions[a])
             self.prev_s = current_s
             self.prev_a = a
+            self.host.updateLogicState(world_state)
+            if self.host.state.checkGoal():
+                print("\n\n-----------BOUNDING BOX DETECTED-----------")
+                print(self.host.state.goal)
+                print("\n")
+                #print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
 
         except RuntimeError as e:
             self.logger.error("Failed to send command: %s" % e)
 
         return current_r
 
-    def run(self, agent_host):
+    def run(self):
         """run the agent on the world"""
 
         total_reward = 0
@@ -168,7 +161,7 @@ class TabQAgent(object):
         is_first_action = True
 
         # main loop:
-        world_state = agent_host.getWorldState()
+        world_state = self.host.getWorldState()
         while world_state.is_mission_running:
 
             current_r = 0
@@ -177,21 +170,19 @@ class TabQAgent(object):
                 # wait until have received a valid observation
                 while True:
                     time.sleep(0.1)
-                    world_state = agent_host.getWorldState()
-                    if self.check_goal_prop(world_state):
-                        print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
+                    world_state = self.host.getWorldState()
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
                         try:
-                            agent_host.sendCommand("discardCurrentItem 1")
+                            self.host.sendCommand("discardCurrentItem 1")
                             time.sleep(0.1)
-                            agent_host.sendCommand("discardCurrentItem 0")
+                            self.host.sendCommand("discardCurrentItem 0")
                         except RuntimeError as e:
                             self.logger.error("Failed to send command: %s" % e)
-                        total_reward += self.act(world_state, agent_host, current_r)
+                        total_reward += self.act(world_state, current_r)
                         break
                     if not world_state.is_mission_running:
                         break
@@ -200,7 +191,7 @@ class TabQAgent(object):
                 # wait for non-zero reward
                 while world_state.is_mission_running and current_r == 0:
                     time.sleep(0.1)
-                    world_state = agent_host.getWorldState()
+                    world_state = self.host.getWorldState()
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
@@ -208,15 +199,13 @@ class TabQAgent(object):
                 # allow time to stabilise after action
                 while True:
                     time.sleep(0.1)
-                    world_state = agent_host.getWorldState()
-                    if self.check_goal_prop(world_state):
-                        print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
+                    world_state = self.host.getWorldState()
                     for error in world_state.errors:
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
-                        total_reward += self.act(world_state, agent_host, current_r)
+                        total_reward += self.act(world_state, current_r)
                         break
                     if not world_state.is_mission_running:
                         break
@@ -281,20 +270,20 @@ else:
     import functools
     print = functools.partial(print, flush=True)
 
-agent = TabQAgent()
-agent_host = MalmoPython.AgentHost()
+mission_file = './grammar_demo.xml'
+quest_file = './quest_entities.xml'
+agent = TabQAgent(mission_file, quest_file)
 try:
-    agent_host.parse( sys.argv )
+    agent.host.parse( sys.argv )
 except RuntimeError as e:
     print('ERROR:',e)
-    print(agent_host.getUsage())
+    print(agent.host.getUsage())
     exit(1)
-if agent_host.receivedArgument("help"):
-    print(agent_host.getUsage())
+if agent.host.receivedArgument("help"):
+    print(agent.host.getUsage())
     exit(0)
 
 # -- set up the mission -- #
-mission_file = './grammar_demo.xml'
 with open(mission_file, 'r') as f:
     print("Loading mission from %s" % mission_file)
     mission_xml = f.read()
@@ -307,7 +296,7 @@ for x in range(1,4):
 
 max_retries = 3
 
-if agent_host.receivedArgument("test"):
+if agent.host.receivedArgument("test"):
     num_repeats = 1
 else:
     num_repeats = 150
@@ -322,7 +311,7 @@ for i in range(num_repeats):
 
     for retry in range(max_retries):
         try:
-            agent_host.startMission( my_mission, my_mission_record )
+            agent.host.startMission( my_mission, my_mission_record )
             break
         except RuntimeError as e:
             if retry == max_retries - 1:
@@ -332,17 +321,17 @@ for i in range(num_repeats):
                 time.sleep(2.5)
 
     print("Waiting for the mission to start", end=' ')
-    world_state = agent_host.getWorldState()
+    world_state = agent.host.getWorldState()
     while not world_state.has_mission_begun:
         print(".", end="")
         time.sleep(0.1)
-        world_state = agent_host.getWorldState()
+        world_state = agent.host.getWorldState()
         for error in world_state.errors:
             print("Error:",error.text)
     print()
 
     # -- run the agent in the world -- #
-    cumulative_reward = agent.run(agent_host)
+    cumulative_reward = agent.run()
     print('Cumulative reward: %d' % cumulative_reward)
     cumulative_rewards += [ cumulative_reward ]
 

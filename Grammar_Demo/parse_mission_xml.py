@@ -10,6 +10,10 @@ import sys
 
 import re
 
+from constants import *
+
+from MalmoLogicState import *
+
 def namespace(element):
     m = re.match('\{.*\}', element.tag)
     return m.group(0) if m else ''
@@ -243,6 +247,31 @@ def test_actions(state):
     }"""
     print(actions)
 
+"""def getInitialWorldState(mission_file):
+    # parse XML
+    xmlTree = ET.parse(mission_file)
+    objectTags = [("DrawBlock", "block"), ("DrawItem", "item")]
+    objectTargets = dict((namespace(xmlTree.getroot()) + tag[0], tag[1]) for tag in objectTags)
+    print(objectTargets)
+
+    # define global objects and propositions
+    objectVars = {}
+    objectProps = {}
+    entities = {}
+
+    for item in xmlTree.iter():
+        if item.tag in objectTargets.keys():
+            item_class = objectTargets[item.tag]
+            currentVar = Variable(item.attrib['type'], item_class)
+            if item_class == "item":
+                currentVar = Item(item.attrib['type'], item.attrib['x'], item.attrib['y'], item.attrib['z'])
+                entities[item.attrib['type']] = currentVar
+            # start each object with the proposition that it is in the current world
+            objectProps[item.attrib['type']] = Proposition("in", [currentVar, worldVar])
+            objectVars[item.attrib['type']]= currentVar
+
+    state_list = defaultFacts.union( set(objectProps.values()) )
+    return MalmoLogicState(state_list, entities)"""
 
 
 if __name__ == "__main__":
@@ -256,6 +285,7 @@ if __name__ == "__main__":
     namespace = namespace(xmlTree.getroot())
     objectTags = [("DrawBlock", "block"), ("DrawItem", "item")]
     objectTargets = dict((namespace + tag[0], tag[1]) for tag in objectTags)
+    print(objectTargets)
 
     # define global objects and propositions
     objectVars = {}
@@ -276,7 +306,7 @@ if __name__ == "__main__":
 
     state_list = [Proposition.parse("at(player, world)"), Proposition.parse("in(map: item, inventory)")] + list(objectProps.values())
     state = State(state_list)
-    print(state)
+    #print(state)
 
     test_inventory_proposition(objectVars, inventoryVar)
-    test_actions(state)
+    #test_actions(state)
