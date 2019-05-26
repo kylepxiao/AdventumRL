@@ -4,6 +4,7 @@ from textworld.logic import State, Variable, Proposition
 from xml.etree import ElementTree as ET
 from parse_mission_xml import namespace
 from constants import *
+from math import sin, cos
 
 class MalmoLogicState(State):
     def __init__(self, facts=None, entities={}, boundaries={}, goal=None):
@@ -11,6 +12,8 @@ class MalmoLogicState(State):
         self.entities = entities
         self.boundaries = boundaries
         self.goal = goal
+        self.yaw = 0
+        self.pitch = 0;
 
     def updateLogicState(self, world_state):
         if len(world_state.observations) < 1:
@@ -18,20 +21,27 @@ class MalmoLogicState(State):
 
         observation = json.loads(world_state.observations[-1].text)
 
+        # Positional update
+        self.yaw = observation['Yaw']
+        self.pitch = observation['Pitch']
+
         # Clear all inventory propositions in world state
         oldInventoryProps = set()
         for fact in self.facts:
             if fact.names[-1] == "inventory":
                 oldInventoryProps.add(fact)
+        #TODO remove inventory items from bounding boxes
         self.remove_facts(oldInventoryProps)
 
         # Add all inventory propositions to world state
         inventoryVar = Variable("inventory", "inventory")
         inventory = observation['inventory']
-        for item in inventory:
+        for i, item in enumerate(inventory):
             key = item['type']
             self.add_fact( Proposition("in", [self.entities[key], inventoryVar]) )
             self.entities[key].setPosition(observation['XPos'], observation['YPos'], observation['ZPos'])
+            if i == 0:
+                self.add_fact( Proposition("in", [self.entities[key], curInventoryVar]) )
 
             # Check if items in inventory leave boundaries
             for boundary in self.boundaries:
@@ -41,7 +51,27 @@ class MalmoLogicState(State):
                     self.remove_fact( Proposition("in", [self.entities[key], self.entities[boundary]]) )
 
     def checkGoal(self):
-        return self.is_fact(self.goal)
+        for subgoal in self.goal:
+            prop = subgoal[0]
+            val = subgoal[1]
+            if self.is_fact(prop) != val:
+                return False
+        return True
+
+    def goalHeuristic(self):
+        total = 0
+        for subgoal in self.goal:
+            prop = subgoal[0]
+            val = subgoal[1]
+            if self.is_fact(prop) == val:
+                total += 1
+        return float(total) / len(self.goal)
+
+    def currentInventoryItem(self):
+        for fact in self.facts:
+            if fact.names[-1] == 'current':
+                return fact
+        return None
 
 def getInitialWorldState(mission_file=None, quest_file=None):
     state_list = defaultFacts
@@ -110,4 +140,10 @@ class LogicalAgentHost(MalmoPython.AgentHost):
         self.state.updateLogicState(world_state)
 
     def sendCommand(self, command):
+        if command == "discardCurrentItem":
+            currentProp = self.state.currentInventoryItem()
+            dx = cos(self.state.yaw)*cos(self.state.pitch)
+            dy = sin(self.state.yaw)*cos(self.state.pitch)
+            dz = sin(self.state.pitch)
+            self.state.entities[currentProp.names[0]].addPosition(dx, dy, dz)
         super().sendCommand(command)

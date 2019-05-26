@@ -4,6 +4,7 @@ import MalmoPython
 worldVar = Variable("world", "world")
 playerVar = Variable("player", "agent")
 inventoryVar = Variable("inventory", "inventory")
+curInventoryVar = Variable("current", "inventory")
 
 itemVars = {
     "apple" : Variable("apple", "item"),
@@ -54,6 +55,12 @@ class Item(Variable):
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
+
+    def addPosition(self, dx, dy, dz):
+        print(dx, dy, dz)
+        self.x += dx
+        self.y += dy
+        self.z += dz
 
     def position(self):
         return (self.x, self.y, self.z)

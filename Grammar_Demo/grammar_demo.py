@@ -64,7 +64,8 @@ class TabQAgent(object):
         self.q_table = {}
         self.canvas = None
         self.root = None
-        goal = Proposition("in", [Variable("diamond", "item"), Variable("boundary1", "boundary")])
+        goal = [(Proposition("in", [Variable("diamond", "item"), Variable("boundary1", "boundary")]), True),
+            (Proposition("in", [Variable("diamond", "item"), Variable("inventory", "inventory")]), True)]
         self.host = LogicalAgentHost(mission_file, quest_file, goal)
 
     def updateQTable( self, reward, current_state ):
@@ -135,15 +136,16 @@ class TabQAgent(object):
 
         # try to send the selected action, only update prev_s if this succeeds
         try:
-            self.host.sendCommand(self.actions[a])
-            self.prev_s = current_s
-            self.prev_a = a
             self.host.updateLogicState(world_state)
             if self.host.state.checkGoal():
+                self.host.sendCommand("discardCurrentItem")
                 print("\n\n-----------BOUNDING BOX DETECTED-----------")
                 print(self.host.state.goal)
                 print("\n")
-                #print("\n\n-----------PROPOSITION GOAL REACHED-----------\n\n")
+            else:
+                self.host.sendCommand(self.actions[a])
+                self.prev_s = current_s
+                self.prev_a = a
 
         except RuntimeError as e:
             self.logger.error("Failed to send command: %s" % e)
@@ -176,12 +178,6 @@ class TabQAgent(object):
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
-                        try:
-                            self.host.sendCommand("discardCurrentItem 1")
-                            time.sleep(0.1)
-                            self.host.sendCommand("discardCurrentItem 0")
-                        except RuntimeError as e:
-                            self.logger.error("Failed to send command: %s" % e)
                         total_reward += self.act(world_state, current_r)
                         break
                     if not world_state.is_mission_running:
@@ -289,10 +285,10 @@ with open(mission_file, 'r') as f:
     mission_xml = f.read()
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
 # add 20% holes for interest
-for x in range(1,4):
+"""for x in range(1,4):
     for z in range(1,13):
         if random.random()<0.1:
-            my_mission.drawBlock( x,45,z,"lava")
+            my_mission.drawBlock( x,45,z,"lava")"""
 
 max_retries = 3
 
