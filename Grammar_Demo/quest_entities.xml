@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Quest xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Grid name="boundary1">
-      <min x="0" y="0" z="4"/>
+      <min x="-99" y="-99" z="4"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="boundary2">
+      <min x="99" y="45" z="7"/>
+      <max x="-1" y="99" z="99"/>
+    </Grid>
+    <Grid name="boundary3">
+      <min x="4"  y="-99" z="7"/>
       <max x="99" y="99" z="99"/>
     </Grid>
 </Quest>

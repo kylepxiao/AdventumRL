@@ -46,6 +46,32 @@ if sys.version_info[0] == 2:
 else:
     import tkinter as tk
 
+#rewardPrecondition = [Proposition("in", [playerVar, boundary1Var])]
+#rewardPostcondition = [Proposition("in", [playerVar, boundary1Var])]
+#rewardRule = LogicalAction("reward", rewardPrecondition, rewardPostcondition, "win")
+
+#unlock = Rule.parse("unlock :: $in(item, boundary) & locked(unlockable) -> in(agent, boundary) & unlocked(unlockable)")
+#room1_key = {Placeholder.parse('item') : itemVars['diamond'], Placeholder.parse('boundary') : boundary2Var}
+
+#unlock = Rule.parse("unlock :: $in(agent, world) & locked(unlockable) -> in(agent, world)")
+
+lockPrecondition = [Proposition("in", [playerVar, boundary1Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
+lockPostcondition = [Proposition("unlocked", [doorVar])]
+unlockRule = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem")
+
+#goal = Rule.parse("goal :: $in(agent, boundary) & unlocked(unlockable) -> in(agent, boundary) & locked(unlockable)")
+#goal_map = {Placeholder.parse('agent') : playerVar, Placeholder.parse('boundary') : boundary3Var}
+
+goalPrecondition = [Proposition("unlocked", [doorVar]), Proposition("in", [playerVar, boundary3Var])]
+goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
+goalRule = LogicalAction("goal", goalPrecondition, goalPostcondition, "win")
+
+asdfPrecondition = [Proposition("in", [itemVars['diamond'], worldVar])]
+asdfPostcondition = []
+asdfRule = LogicalAction("asdf", asdfPrecondition, asdfPostcondition, "asdf")
+
+logicalActions = [unlockRule, goalRule]
+
 class TabQAgent(object):
     """Tabular Q-learning agent for discrete state/action spaces."""
 
@@ -60,13 +86,16 @@ class TabQAgent(object):
         self.logger.handlers = []
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
 
-        self.actions = ["movenorth 1", "movesouth 1", "movewest 1", "moveeast 1"]
+        self.move_actions = ["movenorth 1", "movesouth 1", "movewest 1", "moveeast 1"]
         self.q_table = {}
+        self.logical_q_table = {}
         self.canvas = None
         self.root = None
-        goal = [(Proposition("in", [Variable("diamond", "item"), Variable("boundary1", "boundary")]), True),
-            (Proposition("in", [Variable("diamond", "item"), Variable("inventory", "inventory")]), True)]
-        self.host = LogicalAgentHost(mission_file, quest_file, goal)
+        goal = [(Proposition("in", [itemVars['diamond'], boundary1Var]), True),
+            (Proposition("in", [itemVars['diamond'], inventoryVar]), True)]
+        self.host = LogicalAgentHost(mission_file, quest_file, logicalActions, goal)
+        self.alpha = 0.5
+        self.gamma = 0.9
 
     def updateQTable( self, reward, current_state ):
         """Change q_table to reflect what we have learnt."""
@@ -75,7 +104,8 @@ class TabQAgent(object):
         old_q = self.q_table[self.prev_s][self.prev_a]
 
         # TODO: what should the new action value be?
-        new_q = reward
+        maxqprime = max(self.q_table[current_state])
+        new_q = old_q + self.alpha * (reward + self.gamma * maxqprime - old_q)
 
         # assign the new action value to the Q-table
         self.q_table[self.prev_s][self.prev_a] = new_q
@@ -87,30 +117,32 @@ class TabQAgent(object):
         old_q = self.q_table[self.prev_s][self.prev_a]
 
         # TODO: what should the new action value be?
-        new_q = reward
+        new_q = old_q + self.alpha * (reward - old_q)
 
         # assign the new action value to the Q-table
         self.q_table[self.prev_s][self.prev_a] = new_q
 
-    """def check_goal_prop(self, world_state):
-        goal1 = Proposition("in", [itemVars['apple'], inventoryVar])
-        goal2 = Proposition("in", [itemVars['diamond'], inventoryVar])
-
-        return self.host.state.is_fact(goal1) or self.host.state.is_fact(goal2)"""
-
     def act(self, world_state, current_r ):
         """take 1 action in response to the current world state"""
 
+        self.host.updateLogicState(world_state)
         obs_text = world_state.observations[-1].text
         obs = json.loads(obs_text) # most recent observation
         self.logger.debug(obs)
         if not u'XPos' in obs or not u'ZPos' in obs:
             self.logger.error("Incomplete observation received: %s" % obs_text)
             return 0
-        current_s = "%d:%d" % (int(obs[u'XPos']), int(obs[u'ZPos']))
+        print(self.host.state.getStateKey())
+        #print(self.host.getLogicalActions())
+        #print([action for action in self.host.state.all_applicable_actions([unlock], room1_key)])
+
+        #current_s = "%d:%d" % (int(obs[u'XPos']), int(obs[u'ZPos']))
+        current_s = self.host.state.getStateKey()
+        logicalActions = self.host.state.getApplicableActions()
+        actions = self.move_actions + logicalActions
         self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
         if current_s not in self.q_table:
-            self.q_table[current_s] = ([0] * len(self.actions))
+            self.q_table[current_s] = ([0] * len(actions))
 
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
@@ -121,31 +153,33 @@ class TabQAgent(object):
         # select the next action
         rnd = random.random()
         if rnd < self.epsilon:
-            a = random.randint(0, len(self.actions) - 1)
-            self.logger.info("Random action: %s" % self.actions[a])
+            a = random.randint(0, len(actions) - 1)
+            self.logger.info("Random action: %s" % actions[a])
         else:
             m = max(self.q_table[current_s])
             self.logger.debug("Current values: %s" % ",".join(str(x) for x in self.q_table[current_s]))
             l = list()
-            for x in range(0, len(self.actions)):
+            for x in range(0, len(actions)):
                 if self.q_table[current_s][x] == m:
                     l.append(x)
             y = random.randint(0, len(l)-1)
             a = l[y]
-            self.logger.info("Taking q action: %s" % self.actions[a])
+            self.logger.info("Taking q action: %s" % actions[a])
 
         # try to send the selected action, only update prev_s if this succeeds
         try:
-            self.host.updateLogicState(world_state)
-            if self.host.state.checkGoal():
+            self.host.sendCommand(actions[a], is_logical = a >= len(self.move_actions))
+            self.prev_s = current_s
+            self.prev_a = a
+            """if self.host.checkGoal():
                 self.host.sendCommand("discardCurrentItem")
                 print("\n\n-----------BOUNDING BOX DETECTED-----------")
                 print(self.host.state.goal)
                 print("\n")
             else:
-                self.host.sendCommand(self.actions[a])
+                self.host.sendCommand(actions[a])
                 self.prev_s = current_s
-                self.prev_a = a
+                self.prev_a = a"""
 
         except RuntimeError as e:
             self.logger.error("Failed to send command: %s" % e)
@@ -238,7 +272,7 @@ class TabQAgent(object):
         max_value = 20
         for x in range(world_x):
             for y in range(world_y):
-                s = "%d:%d" % (x,y)
+                s = "%d:%d:00" % (x,y)
                 self.canvas.create_rectangle( x*scale, y*scale, (x+1)*scale, (y+1)*scale, outline="#fff", fill="#000")
                 for action in range(4):
                     if not s in self.q_table:

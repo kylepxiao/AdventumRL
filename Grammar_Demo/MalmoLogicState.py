@@ -1,29 +1,32 @@
 import json
 import MalmoPython
-from textworld.logic import State, Variable, Proposition
+from textworld.logic import State, Variable, Proposition, Action, Rule
 from xml.etree import ElementTree as ET
 from parse_mission_xml import namespace
 from constants import *
 from math import sin, cos
 
 class MalmoLogicState(State):
-    def __init__(self, facts=None, entities={}, boundaries={}, goal=None):
+    def __init__(self, facts=None, actions=None, entities={}, boundaries={}, goal=None):
         super().__init__(facts=facts)
         self.entities = entities
         self.boundaries = boundaries
+        self.actions = actions
         self.goal = goal
         self.yaw = 0
         self.pitch = 0;
+
+    def all_applicable_actions(self, rules=None, mapping=None):
+        if rules is not None:
+            return super().all_applicable_actions(rules, mapping)
+        else:
+            return super().all_applicable_actions(self.actions, mapping)
 
     def updateLogicState(self, world_state):
         if len(world_state.observations) < 1:
             return
 
         observation = json.loads(world_state.observations[-1].text)
-
-        # Positional update
-        self.yaw = observation['Yaw']
-        self.pitch = observation['Pitch']
 
         # Clear all inventory propositions in world state
         oldInventoryProps = set()
@@ -32,6 +35,18 @@ class MalmoLogicState(State):
                 oldInventoryProps.add(fact)
         #TODO remove inventory items from bounding boxes
         self.remove_facts(oldInventoryProps)
+
+        # Positional update
+        self.yaw = observation['Yaw']
+        self.pitch = observation['Pitch']
+        self.entities['player'].setPosition(observation['XPos'], observation['YPos'], observation['ZPos'])
+
+        # Check if player in boundaries
+        for boundary in self.boundaries:
+            if self.entities[boundary].contains(self.entities['player']):
+                self.add_fact( Proposition("in", [self.entities['player'], self.entities[boundary]]) )
+            else:
+                self.remove_fact( Proposition("in", [self.entities['player'], self.entities[boundary]]) )
 
         # Add all inventory propositions to world state
         inventoryVar = Variable("inventory", "inventory")
@@ -49,6 +64,14 @@ class MalmoLogicState(State):
                     self.add_fact( Proposition("in", [self.entities[key], self.entities[boundary]]) )
                 else:
                     self.remove_fact( Proposition("in", [self.entities[key], self.entities[boundary]]) )
+
+    def getStateKey(self, entity='player'):
+        flags = [1 if self.is_applicable(action) else 0 for action in self.actions]
+        flagstr = ''.join(map(str, flags))
+        return "%d:%d:%s" % (int(self.entities[entity].x), int(self.entities[entity].z), flagstr)
+
+    def getApplicableActions(self):
+        return [action for action in self.actions if self.is_applicable(action)]
 
     def checkGoal(self):
         for subgoal in self.goal:
@@ -122,28 +145,60 @@ def getInitialWorldState(mission_file=None, quest_file=None):
                     for boundary in boundaries:
                         if entities[boundary].contains(currentVar):
                             props.add(Proposition("in", [currentVar, entities[boundary]]))
-                # start each object with the proposition that it is in the current world
-                # objectProps[item.attrib['type']] = Proposition("in", [currentVar, worldVar])
-                # objectVars[item.attrib['type']]= currentVar
+            elif item.tag == ns + "AgentStart":
+                for child in item.iter():
+                    if child.tag[len(ns):] == "Placement":
+                        currentVar = Agent("player", child.attrib['x'], child.attrib['y'], child.attrib['z'])
+                        entities['player'] = currentVar
+                        props.add(Proposition("in", [currentVar, worldVar]))
+                        props.add(Proposition("has", [playerVar, inventoryVar]))
 
         state_list = state_list.union( props )
 
-    return MalmoLogicState(state_list, entities, boundaries)
+    return MalmoLogicState(facts=state_list, entities=entities, boundaries=boundaries)
 
 class LogicalAgentHost(MalmoPython.AgentHost):
-    def __init__(self, mission_file=None, quest_file=None, goal=None):
+    def __init__(self, mission_file=None, quest_file=None, actions=None, goal=None):
         super().__init__()
         self.state = MalmoLogicState() if mission_file is None else getInitialWorldState(mission_file, quest_file)
         self.state.goal = goal
+        self.state.actions = actions
 
     def updateLogicState(self, world_state):
         self.state.updateLogicState(world_state)
 
-    def sendCommand(self, command):
-        if command == "discardCurrentItem":
+    def checkGoal(self):
+        return self.state.checkGoal()
+
+    def getLogicalActions(self):
+        return [action for action in self.state.all_applicable_actions()]
+
+    def sendCommand(self, command, is_logical=False):
+        if is_logical:
+            self.state.apply(command)
+        command = str(command)
+        segments = command.split()
+        instruction = segments[0]
+        if instruction == "movenorth":
+            self.state.entities['player'].moveNorth(segments[1])
+        elif instruction == "movesouth":
+            self.state.entities['player'].moveSouth(segments[1])
+        elif instruction == "moveeast":
+            self.state.entities['player'].moveEast(segments[1])
+        elif instruction == "movewest":
+            self.state.entities['player'].moveWest(segments[1])
+        elif instruction == "discardCurrentItem":
             currentProp = self.state.currentInventoryItem()
             dx = cos(self.state.yaw)*cos(self.state.pitch)
             dy = sin(self.state.yaw)*cos(self.state.pitch)
             dz = sin(self.state.pitch)
             self.state.entities[currentProp.names[0]].addPosition(dx, dy, dz)
         super().sendCommand(command)
+
+class LogicalAction(Action):
+    def __init__(self, name, preconditions, postconditions, command):
+        super().__init__(name, preconditions, postconditions)
+        self.command = command
+
+    def __str__(self):
+        return self.command

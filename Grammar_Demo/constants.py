@@ -5,6 +5,10 @@ worldVar = Variable("world", "world")
 playerVar = Variable("player", "agent")
 inventoryVar = Variable("inventory", "inventory")
 curInventoryVar = Variable("current", "inventory")
+doorVar = Variable("door", "unlockable")
+boundary1Var = Variable("boundary1", "boundary")
+boundary2Var = Variable("boundary2", "boundary")
+boundary3Var = Variable("boundary3", "boundary")
 
 itemVars = {
     "apple" : Variable("apple", "item"),
@@ -14,6 +18,8 @@ itemVars = {
 defaultFacts = { Proposition("in", [var, worldVar]) for var in itemVars.values() }.union({
     Proposition("at", [playerVar, worldVar]),
     Proposition("in", [inventoryVar, worldVar]),
+    Proposition("locked", [doorVar]),
+    Proposition("notreached", [boundary1Var]),
     })
 
 class Boundary(Variable):
@@ -57,7 +63,6 @@ class Item(Variable):
         self.z = float(z)
 
     def addPosition(self, dx, dy, dz):
-        print(dx, dy, dz)
         self.x += dx
         self.y += dy
         self.z += dz
@@ -68,6 +73,31 @@ class Item(Variable):
 class Agent(Variable):
     def __init__(self, name, x, y, z):
         super().__init__(name, type="agent")
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = int(float(x))
+        self.y = int(float(y))
+        self.z = int(float(z))
+
+    def position(self):
+        return (self.x, self.y, self.z)
+
+    def setPosition(self, x, y, z):
+        self.x = int(float(x))
+        self.y = int(float(y))
+        self.z = int(float(z))
+
+    def addPosition(self, dx, dy, dz):
+        self.x += dx
+        self.y += dy
+        self.z += dz
+
+    def moveNorth(self, d=1):
+        self.z += int(float(d))
+
+    def moveSouth(self, d=1):
+        self.z -= int(float(d))
+
+    def moveEast(self, d=1):
+        self.x += int(float(d))
+
+    def moveWest(self, d=1):
+        self.x -= int(float(d))
