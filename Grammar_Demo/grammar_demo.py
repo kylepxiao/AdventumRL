@@ -62,14 +62,14 @@ grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 
 
 lockPrecondition = [Proposition("in", [playerVar, boundary2Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
 lockPostcondition = [Proposition("unlocked", [doorVar])]
-unlockAction = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem")
+unlockAction = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem", 75)
 
 #goal = Rule.parse("goal :: $in(agent, boundary) & unlocked(unlockable) -> in(agent, boundary) & locked(unlockable)")
 #goal_map = {Placeholder.parse('agent') : playerVar, Placeholder.parse('boundary') : boundary3Var}
 
 goalPrecondition = [Proposition("unlocked", [doorVar]), Proposition("in", [playerVar, boundary3Var])]
 goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
-goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "win")
+goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "quit", 200)
 
 #asdfPrecondition = [Proposition("in", [itemVars['diamond'], worldVar])]
 #asdfPostcondition = []
@@ -281,7 +281,7 @@ class TabQAgent(object):
         # (NSWE to match action order)
         min_value = -20
         max_value = 20
-        suffixes = ["000:0", "000:1"]
+        suffixes = ["000:01", "000:11", "000:10", "000:00"]
         for x in range(world_x):
             for y in range(world_y):
                 s = "%d:%d|" % (x,y)

@@ -195,6 +195,7 @@ class LogicalAgentHost(MalmoPython.AgentHost):
     def sendCommand(self, command, is_logical=False):
         if is_logical:
             self.state.apply(command)
+            self.reward += command.reward
         command = str(command)
         segments = command.split()
         instruction = segments[0]
@@ -218,9 +219,10 @@ class LogicalAgentHost(MalmoPython.AgentHost):
         super().sendCommand(command)
 
 class LogicalAction(Action):
-    def __init__(self, name, preconditions, postconditions, command):
+    def __init__(self, name, preconditions, postconditions, command, reward=0):
         super().__init__(name, preconditions, postconditions)
         self.command = command
+        self.reward = reward
 
     def __str__(self):
         return self.command

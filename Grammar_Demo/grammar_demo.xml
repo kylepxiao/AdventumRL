@@ -20,10 +20,9 @@
         <DrawBlock x="4"  y="45" z="6" type="lapis_block" />     <!-- the destination marker -->
         <!--<DrawBlock x="0"  y="45" z="7" type="sandstone" />
         <DrawBlock x="-1"  y="45" z="7" type="sandstone" />-->
-        <DrawBlock x="1"  y="45" z="9" type="diamond_block" />
         <DrawBlock x="2"  y="45" z="9" type="diamond_block" />
-        <DrawBlock x="3"  y="45" z="9" type="diamond_block" />
         <DrawBlock x="1"  y="45" z="3" type="redstone_block" />
+        <DrawBlock x="2"  y="45" z="11" type="gold_block" />
         <!--<DrawBlock type="chest" x="2" y="46" z="12"/>-->
         <!--<DrawItem type="apple" x="3" y="46" z="7"/>-->
         <DrawItem type="diamond" x="1" y="46" z="3"/>
@@ -41,13 +40,14 @@
     <AgentHandlers>
       <DiscreteMovementCommands/>
       <InventoryCommands/>
+      <MissionQuitCommands/>
       <ObservationFromFullStats/>
       <ObservationFromFullInventory flat="false"/>
       <RewardForTouchingBlockType>
         <Block reward="-100.0" type="lava" behaviour="onceOnly"/>
         <!--<Block reward="25.0" type="redstone_block" behaviour="oncePerBlock"/>-->
-        <Block reward="50.0" type="diamond_block" behaviour="oncePerBlock"/>
-        <Block reward="100.0" type="lapis_block" behaviour="oncePerBlock"/>
+        <!--<Block reward="50.0" type="diamond_block" behaviour="oncePerBlock"/>
+        <Block reward="100.0" type="lapis_block" behaviour="oncePerBlock"/>-->
       </RewardForTouchingBlockType>
       <ObservationFromGrid>
           <Grid name="floor3x3">
@@ -58,7 +58,7 @@
       <RewardForSendingCommand reward="-1" />
       <AgentQuitFromTouchingBlockType>
           <Block type="lava" />
-          <Block type="lapis_block" />
+          <!--<Block type="lapis_block" />-->
       </AgentQuitFromTouchingBlockType>
     </AgentHandlers>
   </AgentSection>
