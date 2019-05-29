@@ -55,28 +55,35 @@ else:
 
 #unlock = Rule.parse("unlock :: $in(agent, world) & locked(unlockable) -> in(agent, world)")
 
-lockPrecondition = [Proposition("in", [playerVar, boundary1Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
+grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
+grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
+grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 50")
+
+
+lockPrecondition = [Proposition("in", [playerVar, boundary2Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
 lockPostcondition = [Proposition("unlocked", [doorVar])]
-unlockRule = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem")
+unlockAction = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem")
 
 #goal = Rule.parse("goal :: $in(agent, boundary) & unlocked(unlockable) -> in(agent, boundary) & locked(unlockable)")
 #goal_map = {Placeholder.parse('agent') : playerVar, Placeholder.parse('boundary') : boundary3Var}
 
 goalPrecondition = [Proposition("unlocked", [doorVar]), Proposition("in", [playerVar, boundary3Var])]
 goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
-goalRule = LogicalAction("goal", goalPrecondition, goalPostcondition, "win")
+goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "win")
 
-asdfPrecondition = [Proposition("in", [itemVars['diamond'], worldVar])]
-asdfPostcondition = []
-asdfRule = LogicalAction("asdf", asdfPrecondition, asdfPostcondition, "asdf")
+#asdfPrecondition = [Proposition("in", [itemVars['diamond'], worldVar])]
+#asdfPostcondition = []
+#asdfAction = LogicalAction("asdf", asdfPrecondition, asdfPostcondition, "asdf")
 
-logicalActions = [unlockRule, goalRule]
+logicalActions = [grabAction, unlockAction, goalAction]
+
+triggers = [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
 
 class TabQAgent(object):
     """Tabular Q-learning agent for discrete state/action spaces."""
 
     def __init__(self, mission_file=None, quest_file=None):
-        self.epsilon = 0.01 # chance of taking a random action instead of the best
+        self.epsilon = 0.1 # chance of taking a random action instead of the best
 
         self.logger = logging.getLogger(__name__)
         if False: # True if you want to see more information
@@ -93,7 +100,7 @@ class TabQAgent(object):
         self.root = None
         goal = [(Proposition("in", [itemVars['diamond'], boundary1Var]), True),
             (Proposition("in", [itemVars['diamond'], inventoryVar]), True)]
-        self.host = LogicalAgentHost(mission_file, quest_file, logicalActions, goal)
+        self.host = LogicalAgentHost(mission_file, quest_file, logicalActions, goal, triggers)
         self.alpha = 0.5
         self.gamma = 0.9
 
@@ -203,6 +210,7 @@ class TabQAgent(object):
             current_r = 0
 
             if is_first_action:
+                self.host.resetState()
                 # wait until have received a valid observation
                 while True:
                     time.sleep(0.1)
@@ -211,6 +219,7 @@ class TabQAgent(object):
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
+                    current_r += self.host.rewardValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
                         total_reward += self.act(world_state, current_r)
                         break
@@ -226,6 +235,7 @@ class TabQAgent(object):
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
+                    current_r += self.host.rewardValue()
                 # allow time to stabilise after action
                 while True:
                     time.sleep(0.1)
@@ -234,6 +244,7 @@ class TabQAgent(object):
                         self.logger.error("Error: %s" % error.text)
                     for reward in world_state.rewards:
                         current_r += reward.getValue()
+                    current_r += self.host.rewardValue()
                     if world_state.is_mission_running and len(world_state.observations)>0 and not world_state.observations[-1].text=="{}":
                         total_reward += self.act(world_state, current_r)
                         break
@@ -270,14 +281,21 @@ class TabQAgent(object):
         # (NSWE to match action order)
         min_value = -20
         max_value = 20
+        suffixes = ["000:0", "000:1"]
         for x in range(world_x):
             for y in range(world_y):
-                s = "%d:%d:00" % (x,y)
+                s = "%d:%d|" % (x,y)
                 self.canvas.create_rectangle( x*scale, y*scale, (x+1)*scale, (y+1)*scale, outline="#fff", fill="#000")
                 for action in range(4):
-                    if not s in self.q_table:
+                    #if not s in self.q_table:
+                    #    continue
+                    values = []
+                    for suf in suffixes:
+                        if s + suf in self.q_table:
+                            values.append(self.q_table[s + suf][action])
+                    if len(values) == 0:
                         continue
-                    value = self.q_table[s][action]
+                    value = float(sum(values)) / len(values)
                     color = int( 255 * ( value - min_value ) / ( max_value - min_value )) # map value to 0-255
                     color = max( min( color, 255 ), 0 ) # ensure within [0,255]
                     color_string = '#%02x%02x%02x' % (255-color, color, 0)

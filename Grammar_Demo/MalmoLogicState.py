@@ -7,14 +7,18 @@ from constants import *
 from math import sin, cos
 
 class MalmoLogicState(State):
-    def __init__(self, facts=None, actions=None, entities={}, boundaries={}, goal=None):
+    def __init__(self, facts=None, actions=[], triggers=[], entities={}, boundaries={}, goal=None):
         super().__init__(facts=facts)
+        self.actions = actions
+        self.triggers = triggers
         self.entities = entities
         self.boundaries = boundaries
-        self.actions = actions
         self.goal = goal
         self.yaw = 0
         self.pitch = 0;
+
+    def copy(self):
+        return MalmoLogicState(facts=self.facts, actions=self.actions, triggers=self.triggers, entities=self.entities, boundaries=self.boundaries, goal=self.goal)
 
     def all_applicable_actions(self, rules=None, mapping=None):
         if rules is not None:
@@ -66,9 +70,11 @@ class MalmoLogicState(State):
                     self.remove_fact( Proposition("in", [self.entities[key], self.entities[boundary]]) )
 
     def getStateKey(self, entity='player'):
-        flags = [1 if self.is_applicable(action) else 0 for action in self.actions]
-        flagstr = ''.join(map(str, flags))
-        return "%d:%d:%s" % (int(self.entities[entity].x), int(self.entities[entity].z), flagstr)
+        actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
+        actionstr = ''.join(map(str, actionflags))
+        triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
+        triggerstr = ''.join(map(str, triggerflags))
+        return "%d:%d|%s" % (int(self.entities[entity].x), int(self.entities[entity].z), actionstr + ":" + triggerstr)
 
     def getApplicableActions(self):
         return [action for action in self.actions if self.is_applicable(action)]
@@ -158,11 +164,14 @@ def getInitialWorldState(mission_file=None, quest_file=None):
     return MalmoLogicState(facts=state_list, entities=entities, boundaries=boundaries)
 
 class LogicalAgentHost(MalmoPython.AgentHost):
-    def __init__(self, mission_file=None, quest_file=None, actions=None, goal=None):
+    def __init__(self, mission_file=None, quest_file=None, actions=[], goal=None, triggers=[]):
         super().__init__()
         self.state = MalmoLogicState() if mission_file is None else getInitialWorldState(mission_file, quest_file)
         self.state.goal = goal
         self.state.actions = actions
+        self.state.triggers = triggers
+        self.reward = 0
+        self.initialState = self.state.copy()
 
     def updateLogicState(self, world_state):
         self.state.updateLogicState(world_state)
@@ -172,6 +181,16 @@ class LogicalAgentHost(MalmoPython.AgentHost):
 
     def getLogicalActions(self):
         return [action for action in self.state.all_applicable_actions()]
+
+    def rewardValue(self):
+        if self.reward != 0:
+            print("LOGICAL STATE CHANGE REWARD")
+        reward = self.reward
+        self.reward = 0
+        return reward
+
+    def resetState(self):
+        self.state = self.initialState.copy()
 
     def sendCommand(self, command, is_logical=False):
         if is_logical:
@@ -193,6 +212,9 @@ class LogicalAgentHost(MalmoPython.AgentHost):
             dy = sin(self.state.yaw)*cos(self.state.pitch)
             dz = sin(self.state.pitch)
             self.state.entities[currentProp.names[0]].addPosition(dx, dy, dz)
+        elif instruction == "reward":
+            self.reward += float(segments[1])
+            return
         super().sendCommand(command)
 
 class LogicalAction(Action):

@@ -15,16 +15,18 @@
         <!-- coordinates for cuboid are inclusive -->
         <DrawCuboid x1="-2" y1="46" z1="-2" x2="7" y2="50" z2="13" type="air" />            <!-- limits of our arena -->
         <DrawCuboid x1="-2" y1="45" z1="-2" x2="7" y2="45" z2="13" type="lava" />           <!-- lava floor -->
-        <DrawCuboid x1="1"  y1="45" z1="1"  x2="3" y2="45" z2="17" type="sandstone" />      <!-- floor of the arena -->
+        <DrawCuboid x1="1"  y1="45" z1="1"  x2="3" y2="45" z2="9" type="sandstone" />      <!-- floor of the arena -->
         <DrawBlock x="4"  y="45" z="1" type="cobblestone" />    <!-- the starting marker -->
-        <DrawBlock x="4"  y="45" z="7" type="lapis_block" />     <!-- the destination marker -->
-        <DrawBlock x="0"  y="45" z="7" type="sandstone" />
-        <DrawBlock x="-1"  y="45" z="7" type="sandstone" />
-        <DrawBlock x="-1"  y="45" z="9" type="diamond_block" />
-        <DrawBlock x="0"  y="45" z="3" type="redstone_block" />
+        <DrawBlock x="4"  y="45" z="6" type="lapis_block" />     <!-- the destination marker -->
+        <!--<DrawBlock x="0"  y="45" z="7" type="sandstone" />
+        <DrawBlock x="-1"  y="45" z="7" type="sandstone" />-->
+        <DrawBlock x="1"  y="45" z="9" type="diamond_block" />
+        <DrawBlock x="2"  y="45" z="9" type="diamond_block" />
+        <DrawBlock x="3"  y="45" z="9" type="diamond_block" />
+        <DrawBlock x="1"  y="45" z="3" type="redstone_block" />
         <!--<DrawBlock type="chest" x="2" y="46" z="12"/>-->
         <!--<DrawItem type="apple" x="3" y="46" z="7"/>-->
-        <DrawItem type="diamond" x="0" y="46" z="3"/>
+        <DrawItem type="diamond" x="1" y="46" z="3"/>
       </DrawingDecorator>
       <ServerQuitFromTimeUp timeLimitMs="20000"/>
       <ServerQuitWhenAnyAgentFinishes/>
@@ -43,7 +45,7 @@
       <ObservationFromFullInventory flat="false"/>
       <RewardForTouchingBlockType>
         <Block reward="-100.0" type="lava" behaviour="onceOnly"/>
-        <Block reward="25.0" type="redstone_block" behaviour="oncePerBlock"/>
+        <!--<Block reward="25.0" type="redstone_block" behaviour="oncePerBlock"/>-->
         <Block reward="50.0" type="diamond_block" behaviour="oncePerBlock"/>
         <Block reward="100.0" type="lapis_block" behaviour="oncePerBlock"/>
       </RewardForTouchingBlockType>
