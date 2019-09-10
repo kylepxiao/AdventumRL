@@ -14,6 +14,7 @@ import os
 import random
 import sys
 import time
+import argparse
 
 if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262
@@ -256,6 +257,16 @@ class TabQAgent(object):
 
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
+    def __init__(self, mission_file=None, quest_file=None, agent=None):
+        if sys.version_info[0] == 2:
+            sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
+        else:
+            import functools
+            print = functools.partial(print, flush=True)
+        
+        self.mission_file = mission_file or './grammar_demo.xml'
+        self.quest_file = quest_file or './quest_entities.xml'
+        self.agent = agent or TabQAgent(self.mission_file, self.quest_file)
 
     grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
     grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
@@ -273,30 +284,40 @@ class grammar_mission:
     logicalActions = [grabAction, unlockAction, goalAction]
 
     triggers = [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
-
-    def run_mission(): # Running the mission (taken from grammar_demo.py)
-        if sys.version_info[0] == 2:
-            sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
-        else:
-            import functools
-            print = functools.partial(print, flush=True)
-
-        mission_file = './grammar_demo.xml'
-        quest_file = './quest_entities.xml'
-        agent = TabQAgent(mission_file, quest_file)
+    def create_mission(self): 
+        raise NotImplementedError
+    def create_agent(self): 
+        raise NotImplementedError
+    def getReward(self):
+        raise NotImplementedError
+    def getWorldState(self):
+        raise NotImplementedError
+    def getGrammarState(self):
+        raise NotImplementedError
+    def getEntityInformation(self, entity):
+        raise NotImplementedError
+    def performAction(self, action):
+        raise NotImplementedError
+    def addGrammarRule(self, rule):
+        raise NotImplementedError
+    def deleteGrammarRule(self, rule):
+        raise NotImplementedError
+    def getGrammar(self):
+        raise NotImplementedError
+    def run_mission(self): # Running the mission (taken from grammar_demo.py)
         try:
-            agent.host.parse( sys.argv )
+            self.agent.host.parse( sys.argv )
         except RuntimeError as e:
             print('ERROR:',e)
-            print(agent.host.getUsage())
+            print(self.agent.host.getUsage())
             exit(1)
-        if agent.host.receivedArgument("help"):
-            print(agent.host.getUsage())
+        if self.agent.host.receivedArgument("help"):
+            print(self.agent.host.getUsage())
             exit(0)
 
         # -- set up the mission -- #
-        with open(mission_file, 'r') as f:
-            print("Loading mission from %s" % mission_file)
+        with open(self.mission_file, 'r') as f:
+            print("Loading mission from %s" % self.mission_file)
             mission_xml = f.read()
             my_mission = MalmoPython.MissionSpec(mission_xml, True)
         # add 20% holes for interest
@@ -307,14 +328,13 @@ class grammar_mission:
 
         max_retries = 3
 
-        if agent.host.receivedArgument("test"):
+        if self.agent.host.receivedArgument("test"):
             num_repeats = 1
         else:
             num_repeats = 150
 
         cumulative_rewards = []
         for i in range(num_repeats):
-
             print()
             print('Repeat %d of %d' % ( i+1, num_repeats ))
 
@@ -322,7 +342,7 @@ class grammar_mission:
 
             for retry in range(max_retries):
                 try:
-                    agent.host.startMission( my_mission, my_mission_record )
+                    self.agent.host.startMission( my_mission, my_mission_record )
                     break
                 except RuntimeError as e:
                     if retry == max_retries - 1:
@@ -332,17 +352,17 @@ class grammar_mission:
                         time.sleep(2.5)
 
             print("Waiting for the mission to start", end=' ')
-            world_state = agent.host.getWorldState()
+            world_state = self.agent.host.getWorldState()
             while not world_state.has_mission_begun:
                 print(".", end="")
                 time.sleep(0.1)
-                world_state = agent.host.getWorldState()
+                world_state = self.agent.host.getWorldState()
                 for error in world_state.errors:
                     print("Error:",error.text)
             print()
 
             # -- run the agent in the world -- #
-            cumulative_reward = agent.run()
+            cumulative_reward = self.agent.run()
             print('Cumulative reward: %d' % cumulative_reward)
             cumulative_rewards += [ cumulative_reward ]
 
@@ -356,11 +376,10 @@ class grammar_mission:
         print(cumulative_rewards)
         return
 
-class grammar_information:
-    # Class containing information about the mission on the grammar side of things (not in malmo)
-    # Include getters for all kinds of information
+# parser = argparse.ArgumentParser(description='Run missions in Malmo')
+# parser.add_argument("mission", help='choose which mission to run')
+# args = parser.parse_args()
 
-class malmo_information:
-    # Class containing info directly from malmo (camera feed, position)
-    # Utilize world state info (http://microsoft.github.io/malmo/0.30.0/Documentation/structmalmo_1_1_world_state.html)
-    # Include getters like above
+# if (args.mission == 'grammar_demo'):
+#     mission = grammar_mission
+#     mission.run_mission(mission)
