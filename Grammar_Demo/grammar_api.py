@@ -25,7 +25,7 @@ else:
 class TabQAgent(object):
     """Tabular Q-learning agent for discrete state/action spaces."""
 
-    def __init__(self, mission_file=None, quest_file=None):
+    def __init__(self, grammar_logic, mission_file=None, quest_file=None):
         self.epsilon = 0.1 # chance of taking a random action instead of the best
 
         self.logger = logging.getLogger(__name__)
@@ -35,7 +35,6 @@ class TabQAgent(object):
             self.logger.setLevel(logging.INFO)
         self.logger.handlers = []
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
-
         self.move_actions = ["movenorth 1", "movesouth 1", "movewest 1", "moveeast 1"]
         self.q_table = {}
         self.logical_q_table = {}
@@ -43,7 +42,8 @@ class TabQAgent(object):
         self.root = None
         goal = [(Proposition("in", [itemVars['diamond'], boundary1Var]), True),
             (Proposition("in", [itemVars['diamond'], inventoryVar]), True)]
-        self.host = LogicalAgentHost(mission_file, quest_file, logicalActions, goal, triggers)
+        self.grammar_logic = grammar_logic
+        self.host = LogicalAgentHost(mission_file, quest_file, grammar_logic.logicalActions, goal, grammar_logic.triggers)
         self.alpha = 0.5
         self.gamma = 0.9
 
@@ -255,9 +255,25 @@ class TabQAgent(object):
                                      outline="#fff", fill="#fff" )
         self.root.update()
 
+class grammar_logic:
+    def __init__(self, logicalActions=None, triggers=None):
+        grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
+        grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
+        grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 50")
+
+        lockPrecondition = [Proposition("in", [playerVar, boundary2Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
+        lockPostcondition = [Proposition("unlocked", [doorVar])]
+        unlockAction = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem", 75)
+
+        goalPrecondition = [Proposition("unlocked", [doorVar]), Proposition("in", [playerVar, boundary3Var])]
+        goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
+        goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "quit", 200)
+        self.logicalActions = logicalActions or [grabAction, unlockAction, goalAction]
+        self.triggers = triggers or [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
+
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
-    def __init__(self, mission_file=None, quest_file=None, agent=None):
+    def __init__(self, mission_file=None, quest_file=None, agent=None, grammar_logic=None):
         if sys.version_info[0] == 2:
             sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
         else:
@@ -266,38 +282,23 @@ class grammar_mission:
         
         self.mission_file = mission_file or './grammar_demo.xml'
         self.quest_file = quest_file or './quest_entities.xml'
-        self.agent = agent or TabQAgent(self.mission_file, self.quest_file)
+        self.grammar_logic = grammar_logic or grammar_logic()
+        self.agent = agent or TabQAgent(self.grammar_logic, self.mission_file, self.quest_file)
 
-    grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
-    grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
-    grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 50")
-
-
-    lockPrecondition = [Proposition("in", [playerVar, boundary2Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
-    lockPostcondition = [Proposition("unlocked", [doorVar])]
-    unlockAction = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem", 75)
-
-    goalPrecondition = [Proposition("unlocked", [doorVar]), Proposition("in", [playerVar, boundary3Var])]
-    goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
-    goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "quit", 200)
-
-    logicalActions = [grabAction, unlockAction, goalAction]
-
-    triggers = [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
     def create_mission(self): 
         raise NotImplementedError
     def create_agent(self): 
         raise NotImplementedError
     def getReward(self):
-        raise NotImplementedError
+        return self.agent.peekWorldState().rewards
     def getWorldState(self):
-        raise NotImplementedError
+        return self.agent.peekWorldState()
     def getGrammarState(self):
         raise NotImplementedError
     def getEntityInformation(self, entity):
         raise NotImplementedError
-    def performAction(self, action):
-        raise NotImplementedError
+    def sendCommand(self, action):
+        self.agent.sendCommand(action)
     def addGrammarRule(self, rule):
         raise NotImplementedError
     def deleteGrammarRule(self, rule):
