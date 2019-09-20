@@ -285,26 +285,35 @@ class grammar_mission:
         self.grammar_logic = grammar_logic or grammar_logic()
         self.agent = agent or TabQAgent(self.grammar_logic, self.mission_file, self.quest_file)
 
-    def create_mission(self): 
-        raise NotImplementedError
-    def create_agent(self): 
-        raise NotImplementedError
-    def getReward(self):
-        return self.agent.peekWorldState().rewards
+    def getMission(self):
+        return self.mission_file
+    def setMission(self, mission):
+        self.mission_file = mission
+    def getQuest(self):
+        return self.quest_file
+    def setQuest(self, quest):
+        self.quest_file = quest
+        
+    def getRewards(self):
+        return self.agent.getWorldState().rewards
     def getWorldState(self):
-        return self.agent.peekWorldState()
-    def getGrammarState(self):
-        raise NotImplementedError
-    def getEntityInformation(self, entity):
-        raise NotImplementedError
+        return self.agent.getWorldState()
+    def getWorldStateObservations(self):
+        return json.loads(self.agent.getWorldState().observations[-1].text)
+        # You'll need to extract the observations from the JSON yourself
+        # I'm unsure if -1 is the best way to index, I'm deferring to the official malmo example (https://github.com/microsoft/malmo/pull/192/files)
     def sendCommand(self, action):
         self.agent.sendCommand(action)
-    def addGrammarRule(self, rule):
-        raise NotImplementedError
-    def deleteGrammarRule(self, rule):
-        raise NotImplementedError
+
+    def setGrammar(self, newGrammar):
+        self.grammar_logic = newGrammar
     def getGrammar(self):
-        raise NotImplementedError
+        return self.grammar_logic
+    def addGrammarLogicalAction(self, action):
+        self.grammar_logic.logicalActions.append(action)
+    def addGrammarTrigger(self, trigger):
+        self.grammar_logic.triggers.add(trigger)
+
     def run_mission(self): # Running the mission (taken from grammar_demo.py)
         try:
             self.agent.host.parse( sys.argv )
