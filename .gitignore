@@ -12,3 +12,4 @@ taskArtifacts
 *.bin
 *.jar
 *.properties
+*.h5
