@@ -2,32 +2,33 @@ import numpy as np
 import random as rand
 import torch
 import torch.nn as nn
+import os
 
 class NeuralNet(nn.Module):
-    def __init__(self, input_size=4, hidden_size=20, num_classes=2):
+    def __init__(self, input_size=31, hidden_size=20, num_classes=2):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.activate1 = nn.Sigmoid()
+        self.fc1 = nn.Linear(input_size, 23)
+        self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.activate2 = nn.Sigmoid()
+        self.fc2 = nn.Linear(23, 15)
+        self.activate2 = nn.LeakyReLU()
         self.dropout2 = nn.Dropout(p=0.05)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.activate3 = nn.Sigmoid()
-        self.dropout3 = nn.Dropout(p=0.05)
-        self.fc4 = nn.Linear(hidden_size, num_classes)
+        self.fc3 = nn.Linear(15, num_classes)
+        #self.activate3 = nn.Sigmoid()
+        #self.dropout3 = nn.Dropout(p=0.05)
+        #self.fc4 = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
         out = self.fc1(x)
         out = self.activate1(out)
-        out = self.dropout1(out)
+        #out = self.dropout1(out)
         out = self.fc2(out)
         out = self.activate2(out)
-        out = self.dropout2(out)
+        #out = self.dropout2(out)
         out = self.fc3(out)
-        out = self.activate3(out)
-        out = self.dropout3(out)
-        out = self.fc4(out)
+        #out = self.activate3(out)
+        #out = self.dropout3(out)
+        #out = self.fc4(out)
         return out
 
 class DeepQLearner(object):
@@ -37,10 +38,10 @@ class DeepQLearner(object):
         num_actions = 2, \
         alpha = 0.2, \
         gamma = 0.9, \
-        rar = 0.3, \
+        rar = 0.1, \
         radr = 1, \
         dyna = 10, \
-        learning_rate = 0.1, \
+        learning_rate = 1, \
         load_path = None, \
         save_path = None, \
         verbose = False):
@@ -51,7 +52,6 @@ class DeepQLearner(object):
         self.s = [0] * input_size
         self.a = 0
 
-        #self.Q = np.zeros((num_states, num_actions))
         self.alpha = alpha
         self.gamma = gamma
         self.rar = rar
@@ -68,7 +68,7 @@ class DeepQLearner(object):
 
         # Load saved model
         self.save_path = save_path
-        if load_path != None:
+        if load_path != None and os.path.exists(save_path):
             checkpoint = torch.load(load_path)
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -85,17 +85,6 @@ class DeepQLearner(object):
         @param s: The new state
         @returns: The selected action
         """
-        """self.s = s
-        #action = np.argmax(self.Q[s]) if self.rar < rand.random() else rand.randint(0, self.num_actions - 1)
-        if self.rar < rand.random():
-            output = self.model(torch.Tensor([s]))
-            output_Q, output_action = torch.max(output.data, 1)
-            action = output_action[0].item()
-        else:
-            action = rand.randint(0, self.num_actions - 1)
-        self.a = action
-        self.rar *= self.radr
-        if self.verbose: print "s =", s,"a =",action"""
         self.model.eval()
         with torch.no_grad():
             self.s = s
@@ -111,7 +100,7 @@ class DeepQLearner(object):
         @param r: The reward
         @returns: The selected action
         """
-        if self.rar < rand.random():
+        if self.rar > rand.random():
             self.model.eval()
             with torch.no_grad():
                 self.samples.append([self.s, self.a, s_prime, r])
@@ -140,9 +129,8 @@ class DeepQLearner(object):
             print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
-            #next_action = np.argmax(self.Q[s_prime])
             expected_reward = r + self.gamma * next_output_Q[0].item()
-            #expected_reward = r + self.gamma * self.Q[s_prime, next_action]
+
         self.model.train()
         output = self.model(torch.Tensor([self.s]))
         output_Q, output_action = torch.max(output.data, 1)
@@ -154,15 +142,10 @@ class DeepQLearner(object):
         loss.backward()
         self.optimizer.step()
         self.losses.append(loss.item())
-        #self.Q[self.s, self.a] *= (1 - self.alpha)
-        #self.Q[self.s, self.a] += self.alpha * expected_reward
-        #print(self.s, r, s_prime, next_action)
 
         self.s = s_prime
-        self.a = next_action if self.rar < rand.random() else rand.randint(0, self.num_actions - 1)
+        self.a = next_action if self.rar > rand.random() else rand.randint(0, self.num_actions - 1)
         self.rar *= self.radr
-
-        #print(self.a, output, label)
 
         if self.verbose: print("s =", s_prime,"a =",self.a,"r =",r)
         return self.a
@@ -188,7 +171,6 @@ class DeepQLearner(object):
         with torch.no_grad():
             next_output = self.model(torch.Tensor(s_prime_list))
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
-            #next_action = next_output_action[0].item()
             expected_reward = torch.Tensor(r_list) + self.gamma * next_output_Q
 
         self.model.train()

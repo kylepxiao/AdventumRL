@@ -8,3 +8,7 @@ taskArtifacts
 *.log
 *.json
 *.index
+*.lock
+*.bin
+*.jar
+*.properties
