@@ -57,10 +57,10 @@ class DQNAgent(object):
                 + (world_bounds[1][1]-world_bounds[0][1]+1)
                 + len(logicalActions) + len(triggers),
             num_actions=len(self.move_actions) + len(logicalActions),
-            #load_path='cache/dqn.pkl',
+            load_path='cache/dqn.pkl',
             save_path='cache/dqn.pkl',
             verbose=False)
-        
+
         self.canvas = None
         self.root = None
         goal = [(Proposition("in", [itemVars['diamond'], boundary1Var]), True),

@@ -38,10 +38,10 @@ class DeepQLearner(object):
         num_actions = 2, \
         alpha = 0.2, \
         gamma = 0.9, \
-        rar = 0.1, \
+        rar = 0.2, \
         radr = 1, \
         dyna = 10, \
-        learning_rate = 1, \
+        learning_rate = 0.3, \
         load_path = None, \
         save_path = None, \
         verbose = False):
@@ -100,7 +100,7 @@ class DeepQLearner(object):
         @param r: The reward
         @returns: The selected action
         """
-        if self.rar > rand.random():
+        if self.rar < rand.random():
             self.model.eval()
             with torch.no_grad():
                 self.samples.append([self.s, self.a, s_prime, r])
@@ -144,7 +144,7 @@ class DeepQLearner(object):
         self.losses.append(loss.item())
 
         self.s = s_prime
-        self.a = next_action if self.rar > rand.random() else rand.randint(0, self.num_actions - 1)
+        self.a = next_action if self.rar < rand.random() else rand.randint(0, self.num_actions - 1)
         self.rar *= self.radr
 
         if self.verbose: print("s =", s_prime,"a =",self.a,"r =",r)
