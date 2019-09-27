@@ -13,3 +13,4 @@ taskArtifacts
 *.jar
 *.properties
 *.h5
+*.txt

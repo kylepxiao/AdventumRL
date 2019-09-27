@@ -41,7 +41,7 @@ class DeepQLearner(object):
         rar = 0.2, \
         radr = 1, \
         dyna = 10, \
-        learning_rate = 0.3, \
+        learning_rate = 0.1, \
         load_path = None, \
         save_path = None, \
         verbose = False):
