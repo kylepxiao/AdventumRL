@@ -16,7 +16,11 @@ class MalmoLogicState(State):
         self.goal = goal
         self.world_bounds = world_bounds
         self.yaw = 0
-        self.pitch = 0;
+        self.pitch = 0
+
+        #TODO: Allow user to specify global set of variables and relations a priori
+        self.varNames = [v.name for v in self.variables]
+        self.relations = list(set([fact.name for fact in self.facts]))
 
     def copy(self):
         return MalmoLogicState(facts=self.facts, actions=self.actions, triggers=self.triggers, entities=self.entities, boundaries=self.boundaries, goal=self.goal, world_bounds=self.world_bounds)
@@ -92,7 +96,63 @@ class MalmoLogicState(State):
             zValue = [1 if round(self.entities[entity].z) == i else 0 for i in range(self.world_bounds[0][1], self.world_bounds[1][1]+1, 1)]
             return xValue + zValue + actionflags + triggerflags
 
+    def getRelationalKnowledgeGraph(self):
+        graph = []
+        for fact in self.facts:
+            if len(fact.names) == 1:
+                graph.append([fact.names[0], fact.name, fact.names[0]])
+            else:
+                graph += [[fact.names[p1], fact.name, fact.names[p2]] for p1 in range(len(fact.names)) for p2 in range(p1+1,len(fact.names))]
+
+        # convert to ids
+        for i in range(len(graph)):
+            if graph[i][0] in self.varNames:
+                graph[i][0] = self.varNames.index(graph[i][0])
+            else:
+                self.varNames.append(graph[i][0])
+                graph[i][0] = len(self.varNames) - 1
+
+            if graph[i][1] in self.relations:
+                graph[i][1] = self.relations.index(graph[i][1])
+            else:
+                self.relations.append(graph[i][1])
+                graph[i][1] = len(self.relations) - 1
+
+            if graph[i][2] in self.varNames:
+                graph[i][2] = self.varNames.index(graph[i][2])
+            else:
+                self.varNames.append(graph[i][2])
+                graph[i][2] = len(self.varNames) - 1
+
+        return graph
+
+    def getUndirectedKnowledgeGraph(self):
+        graph = []
+        for fact in self.facts:
+            if len(fact.names) == 1:
+                graph.append([fact.names[0], fact.names[0]])
+            else:
+                graph += [[fact.names[p1], fact.names[p2]] for p1 in range(len(fact.names)) for p2 in range(p1+1,len(fact.names))]
+
+        # convert to ids
+        for i in range(len(graph)):
+            if graph[i][0] in self.varNames:
+                graph[i][0] = self.varNames.index(graph[i][0])
+            else:
+                self.varNames.append(graph[i][0])
+                graph[i][0] = len(self.varNames) - 1
+
+            if graph[i][1] in self.varNames:
+                graph[i][1] = self.varNames.index(graph[i][1])
+            else:
+                self.varNames.append(graph[i][1])
+                graph[i][1] = len(self.varNames) - 1
+
+        return graph
+
+
     def getApplicableActions(self):
+        print(self.getUndirectedKnowledgeGraph())
         return [action for action in self.actions if self.is_applicable(action)]
 
     def checkGoal(self):
