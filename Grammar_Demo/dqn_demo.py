@@ -88,10 +88,11 @@ class DQNAgent(object):
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
             a = self.learner.query(current_s, current_r)
+            self.learner.run_dyna()
         else:
             a = self.learner.querysetstate(current_s)
 
-        self.drawQ( curr_x = int(obs[u'XPos']), curr_y = int(obs[u'ZPos']) )
+        #self.drawQ( curr_x = int(obs[u'XPos']), curr_y = int(obs[u'ZPos']) )
 
         self.logger.info("Taking q action: %s" % actions[a % len(actions)])
 
@@ -172,7 +173,7 @@ class DQNAgent(object):
         if self.prev_s is not None and self.prev_a is not None:
             self.learner.query( self.host.state.getStateEmbedding(), current_r )
 
-        self.drawQ()
+        #self.drawQ()
 
         return total_reward
 

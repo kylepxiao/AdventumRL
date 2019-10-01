@@ -37,7 +37,7 @@ class DeepQLearner(object):
         input_size = 4, \
         num_actions = 2, \
         alpha = 0.2, \
-        gamma = 0.9, \
+        gamma = 0.5, \
         rar = 0.2, \
         radr = 1, \
         dyna = 10, \
@@ -59,8 +59,8 @@ class DeepQLearner(object):
         self.dyna = dyna
         self.samples = []
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(device)
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
 
         # Loss and optimizer
         self.criterion = nn.MSELoss()
@@ -88,7 +88,7 @@ class DeepQLearner(object):
         self.model.eval()
         with torch.no_grad():
             self.s = s
-            output = self.model(torch.Tensor([s]))
+            output = self.model(torch.Tensor([s]).to(self.device))
             output_Q, output_action = torch.max(output.data, 1)
             action = output_action[0].item()
             return action
@@ -104,7 +104,7 @@ class DeepQLearner(object):
             self.model.eval()
             with torch.no_grad():
                 self.samples.append([self.s, self.a, s_prime, r])
-                next_output = self.model(torch.Tensor([s_prime]))
+                next_output = self.model(torch.Tensor([s_prime]).to(self.device))
                 next_output_Q, next_output_action = torch.max(next_output.data, 1)
                 self.a = next_output_action[0].item()
         else:
@@ -125,14 +125,14 @@ class DeepQLearner(object):
         self.model.eval()
         with torch.no_grad():
             self.samples.append([self.s, self.a, s_prime, r])
-            next_output = self.model(torch.Tensor([s_prime]))
+            next_output = self.model(torch.Tensor([s_prime]).to(self.device))
             print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
             expected_reward = r + self.gamma * next_output_Q[0].item()
 
         self.model.train()
-        output = self.model(torch.Tensor([self.s]))
+        output = self.model(torch.Tensor([self.s]).to(self.device))
         output_Q, output_action = torch.max(output.data, 1)
         label = torch.Tensor()
         label.data = output.clone()
@@ -169,12 +169,12 @@ class DeepQLearner(object):
 
         self.model.eval()
         with torch.no_grad():
-            next_output = self.model(torch.Tensor(s_prime_list))
+            next_output = self.model(torch.Tensor(s_prime_list).to(self.device))
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
-            expected_reward = torch.Tensor(r_list) + self.gamma * next_output_Q
+            expected_reward = torch.Tensor(r_list).to(self.device) + self.gamma * next_output_Q
 
         self.model.train()
-        output = self.model(torch.Tensor(s_list))
+        output = self.model(torch.Tensor(s_list).to(self.device))
         output_Q, output_action = torch.max(output.data, 1)
         label = torch.Tensor()
         label.data = output.clone()

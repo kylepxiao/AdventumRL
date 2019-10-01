@@ -152,7 +152,6 @@ class MalmoLogicState(State):
 
 
     def getApplicableActions(self):
-        print(self.getUndirectedKnowledgeGraph())
         return [action for action in self.actions if self.is_applicable(action)]
 
     def checkGoal(self):
