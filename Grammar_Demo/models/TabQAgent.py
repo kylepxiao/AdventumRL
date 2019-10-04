@@ -46,10 +46,17 @@ class TabQAgent(object):
         self.alpha = 0.5
         self.gamma = 0.9
 
-    def updateGrammar( self, grammar):
+    def updateGrammar(self, grammar):
         self.host = LogicalAgentHost(self.mission_file, self.quest_file, grammar.logicalActions, grammar.goals, grammar.triggers)
 
-    def updateQTable( self, reward, current_state ):
+    def getActionSpace(self):
+        return self.host.getApplicableActions()
+
+    def getObservations(self, world_state):
+        return json.loads(world_state.observations[-1].text)
+
+
+    def updateQTable(self, reward, current_state ):
         """Change q_table to reflect what we have learnt."""
 
         # retrieve the old action value from the Q-table (indexed by the previous state and the previous action)
@@ -62,7 +69,7 @@ class TabQAgent(object):
         # assign the new action value to the Q-table
         self.q_table[self.prev_s][self.prev_a] = new_q
 
-    def updateQTableFromTerminatingState( self, reward ):
+    def updateQTableFromTerminatingState(self, reward ):
         """Change q_table to reflect what we have learnt, after reaching a terminal state."""
 
         # retrieve the old action value from the Q-table (indexed by the previous state and the previous action)
@@ -208,7 +215,7 @@ class TabQAgent(object):
 
         return total_reward
 
-    def drawQ( self, curr_x=None, curr_y=None ):
+    def drawQ(self, curr_x=None, curr_y=None ):
         scale = 40
         world_x = 6
         world_y = 14

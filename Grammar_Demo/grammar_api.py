@@ -25,7 +25,7 @@ else:
 
 class grammar_logic:
     #Rules (https://textworld.readthedocs.io/en/latest/textworld.logic.html) also work/Predicates
-    def __init__(self, logicalActions=None, triggers=None, goals = None):
+    def __init__(self, rules=None, logicalActions=None, triggers=None, goals=None, predicates=None):
         grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
         grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
         grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 50")
@@ -42,6 +42,19 @@ class grammar_logic:
         self.logicalActions = logicalActions or [grabAction, unlockAction, goalAction]
         self.triggers = triggers or [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
         self.goals = goals or goal
+        self.rules = rules or []
+        self.predicates = predicates or []
+
+    #Intermediate methods that will eventually be replaced by a parser (maybe integrated into agents/its own file?)
+    def addRule(self, name, precondition, postcondition):
+        self.rules.append(Rule(name, precondition, postcondition))
+        self.logicalActions.append(LogicalAction(name, precondition, postcondition, None, None)) #Pretty sure this is wrong, but we want to add an action that corresponds to the added rule
+    def addAction(self, name, precondition, postcondition, command, reward):
+        self.logicalActions.append(LogicalAction(name, precondition, postcondition, command, reward))
+    def addPredicate(self, name, parameters):
+        self.predicates.append(Predicate(name, parameters))
+
+        
 
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
