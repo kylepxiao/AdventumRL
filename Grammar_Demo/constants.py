@@ -20,6 +20,7 @@ defaultFacts = { Proposition("in", [var, worldVar]) for var in itemVars.values()
     Proposition("in", [inventoryVar, worldVar]),
     Proposition("locked", [doorVar]),
     Proposition("notreached", [boundary1Var]),
+    Proposition("by", [playerVar, doorVar])
     })
 
 class Boundary(Variable):
@@ -50,6 +51,17 @@ class Boundary(Variable):
                     return True
         return False
 
+    def by(self, entity, thresh=20):
+        if self.x1 <= entity.x and entity.x <= self.x2:
+            if self.y1 <= entity.y and entity.y <= self.y2:
+                if self.z1 <= entity.z and entity.z <= self.z2:
+                    return False
+        if self.x1 <= entity.x + thresh and entity.x <= self.x2 + thresh:
+            if self.y1 <= entity.y + thresh and entity.y <= self.y2 + thresh:
+                if self.z1 <= entity.z + thresh and entity.z <= self.z2 + thresh:
+                    return True
+        return False
+
 class Item(Variable):
     def __init__(self, name, x, y, z):
         super().__init__(name, type="item")
@@ -69,6 +81,13 @@ class Item(Variable):
 
     def position(self):
         return (self.x, self.y, self.z)
+
+    def by(self, entity, thresh=20):
+        if self.x <= entity.x + thresh and entity.x <= self.x + thresh:
+            if self.y <= entity.y + thresh and entity.y <= self.y + thresh:
+                if self.z <= entity.z + thresh and entity.z <= self.z + thresh:
+                    return True
+        return False
 
 class Agent(Variable):
     def __init__(self, name, x, y, z):
@@ -101,3 +120,10 @@ class Agent(Variable):
 
     def moveWest(self, d=1):
         self.x -= int(float(d))
+
+    def by(self, entity, thresh=20):
+        if self.x <= entity.x + thresh and entity.x <= self.x + thresh:
+            if self.y <= entity.y + thresh and entity.y <= self.y + thresh:
+                if self.z <= entity.z + thresh and entity.z <= self.z + thresh:
+                    return True
+        return False

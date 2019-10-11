@@ -52,6 +52,14 @@ class MalmoLogicState(State):
             else:
                 self.remove_fact( Proposition("in", [self.entities['player'], self.entities[boundary]]) )
 
+        # Check if player next to item
+        for boundary in self.entities:
+            if self.entities[boundary].by(self.entities['player']):
+                print(Proposition("by", [self.entities['player'], self.entities[boundary]]))
+                self.add_fact( Proposition("by", [self.entities['player'], self.entities[boundary]]) )
+            else:
+                self.remove_fact( Proposition("by", [self.entities['player'], self.entities[boundary]]) )
+
         # Add all inventory propositions to world state
         inventoryVar = Variable("inventory", "inventory")
         inventory = observation['inventory']
