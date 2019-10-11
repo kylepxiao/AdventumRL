@@ -1,0 +1,183 @@
+{
+    "Variables": {
+        "world": ["world"],
+        "agent": ["player"],
+        "inventory": ["inventory", "current"],
+        "unlockable": ["door"],
+        "boundary": ["boundary1", "boundary2", "boundary3"],
+        "item": ["apple", "diamond"]
+    },
+    "Items": {
+        "item": ["apple", "diamond"]
+    },
+    "DefaultFacts": [
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["apple", "diamond"], "inventory": ["inventory"]},
+                {"world": ["world"]}
+            ]
+        },
+        {
+            "name": "at",
+            "vars": [
+                {"agent": ["player"]},
+                {"world": ["world"]}
+            ]
+        },
+        {
+            "name": "locked",
+            "vars": [
+                {"unlockable": ["door"]}
+            ]
+        },
+        {
+            "name": "notreached",
+            "vars": [
+                {"boundary": ["boundary1"]}
+            ]
+        },
+        {
+            "name": "by",
+            "vars": [
+                {"agent": ["player"]},
+                {"unlockable": ["door"]}
+            ]
+        }
+    ],
+    "Actions": [
+        {
+            "name": "grab",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["boundary1"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["boundary1"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["boundary1"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["boundary1"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "unlock",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["boundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["diamond"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "command": "discardCurrentItem",
+            "reward": 75
+        },
+        {
+            "name": "goal",
+            "precondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["boundary3"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["boundary3"]}
+                    ]
+                }
+            ],
+            "command": "quit",
+            "reward": 200
+        }
+    ],
+    "Goal": [
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["diamond"]},
+                {"boundary": ["boundary1"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["diamond"]},
+                {"inventory": ["inventory"]}
+            ],
+            "negate": false
+        }
+    ],
+    "Triggers": [
+        {
+            "name": "notreached",
+            "vars": [
+                {"boundary": ["boundary1"]}
+            ]
+        },
+        {
+            "name": "locked",
+            "vars": [
+                {"unlockable": ["door"]}
+            ]
+        }
+    ],
+    "Rules": [],
+    "Predicates": []
+}
