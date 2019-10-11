@@ -72,6 +72,10 @@ class DQNAgent(object):
         """take 1 action in response to the current world state"""
 
         self.host.updateLogicState(world_state)
+        #graph = self.host.state.getUndirectedKnowledgeGraph()
+        #with open('graph.txt', 'w') as f:
+        #    for item in graph:
+        #        f.write(str(item[0]) + ', ' + str(item[1]) + '\n')
         obs_text = world_state.observations[-1].text
         obs = json.loads(obs_text) # most recent observation
         self.logger.debug(obs)
@@ -88,9 +92,9 @@ class DQNAgent(object):
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
             a = self.learner.query(current_s, current_r)
-            self.learner.run_dyna()
         else:
             a = self.learner.querysetstate(current_s)
+        self.learner.run_dyna()
 
         #self.drawQ( curr_x = int(obs[u'XPos']), curr_y = int(obs[u'ZPos']) )
 
