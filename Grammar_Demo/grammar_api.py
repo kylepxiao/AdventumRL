@@ -47,15 +47,14 @@ class grammar_logic:
 
     #Intermediate methods that will eventually be replaced by a parser (maybe integrated into agents/its own file?)
     def addRule(self, name, precondition, postcondition):
-        self.rules.append(Rule(name, precondition, postcondition))
+        self.rules.append(Rule(name, precondition, postcondition)) #Given a scenario (5 keys, 5 doors), create a rule to allow door unlocking and then create actions for all pairs it applies to
         self.logicalActions.append(LogicalAction(name, precondition, postcondition, None, None)) #Pretty sure this is wrong, but we want to add an action that corresponds to the added rule
     def addAction(self, name, precondition, postcondition, command, reward):
         self.logicalActions.append(LogicalAction(name, precondition, postcondition, command, reward))
     def addPredicate(self, name, parameters):
-        self.predicates.append(Predicate(name, parameters))
+        self.predicates.append(Predicate(name, parameters)) #If class A is related to class B, return true (Any Key next to Any Door)
 
-        
-
+    
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
     def __init__(self, mission_file=None, quest_file=None, agent=None, grammar_logic=None):

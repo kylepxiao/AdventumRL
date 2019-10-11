@@ -7,6 +7,7 @@ from builtins import object
 from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
 from MalmoLogicState import *
 from constants import *
+from Agent import Agent
 import MalmoPython
 import json
 import logging
@@ -22,7 +23,7 @@ if sys.version_info[0] == 2:
 else:
     import tkinter as tk
 
-class TabQAgent(object):
+class TabQAgent(Agent):
     """Tabular Q-learning agent for discrete state/action spaces."""
 
     def __init__(self, grammar_logic, mission_file=None, quest_file=None):
@@ -52,9 +53,55 @@ class TabQAgent(object):
     def getActionSpace(self):
         return self.host.getApplicableActions()
 
-    def getObservations(self, world_state):
-        return json.loads(world_state.observations[-1].text)
+    def getObservations(self):
+        return json.loads(self.host.state.observations[-1].text)
 
+    def addObservations(self, observation):
+        self.host.updateLogicState(self.host.state.observations[-1].append[observation])
+
+    def queryActions(self, world_state, current_r):
+        self.host.updateLogicState(world_state)
+        obs_text = world_state.observations[-1].text
+        obs = json.loads(obs_text) # most recent observation
+        self.logger.debug(obs)
+        if not u'XPos' in obs or not u'ZPos' in obs:
+            self.logger.error("Incomplete observation received: %s" % obs_text)
+            return 0
+        print(self.host.state.getStateKey())
+
+        current_s = self.host.state.getStateKey()
+        logicalActions = self.host.state.getApplicableActions()
+        actions = self.move_actions + logicalActions
+        self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
+        if current_s not in self.q_table:
+            self.q_table[current_s] = ([0] * len(actions))
+
+        # update Q values
+        if self.prev_s is not None and self.prev_a is not None:
+            self.updateQTable( current_r, current_s )
+
+        self.drawQ( curr_x = int(obs[u'XPos']), curr_y = int(obs[u'ZPos']) )
+
+        # select the next action
+        rnd = random.random()
+        if rnd < self.epsilon:
+            a = random.randint(0, len(actions) - 1)
+            self.logger.info("Random action: %s" % actions[a])
+        else:
+            m = max(self.q_table[current_s])
+            self.logger.debug("Current values: %s" % ",".join(str(x) for x in self.q_table[current_s]))
+            l = list()
+            for x in range(0, len(actions)):
+                if self.q_table[current_s][x] == m:
+                    l.append(x)
+            y = random.randint(0, len(l)-1)
+            a = l[y]
+            self.logger.info("Returning q action: %s" % actions[a])
+
+        return actions[a], current_r # Return the selected action
+
+    def setState(self, world_state):
+        self.host.updateLogicState(world_state)
 
     def updateQTable(self, reward, current_state ):
         """Change q_table to reflect what we have learnt."""
