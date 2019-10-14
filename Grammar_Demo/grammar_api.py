@@ -63,10 +63,10 @@ class grammar_logic:
     
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
-    def __init__(self, mission_file=None, quest_file=None, agent=None, grammar_logic=None):
+    def __init__(self, mission_file=None, quest_file=None, agent=None, grammarlogic=None):
         self.mission_file = mission_file or './grammar_demo.xml'
         self.quest_file = quest_file or './quest_entities.xml'
-        self.grammar_logic = grammar_logic or grammar_logic()
+        self.grammar_logic = grammarlogic or grammar_logic
         self.agent = agent
 
     def getMission(self):
@@ -172,10 +172,10 @@ class grammar_mission:
         print(cumulative_rewards)
         return
 
-# parser = argparse.ArgumentParser(description='Run missions in Malmo')
-# parser.add_argument("mission", help='choose which mission to run')
-# args = parser.parse_args()
+parser = argparse.ArgumentParser(description='Run missions in Malmo')
+parser.add_argument("mission", help='choose which mission to run')
+args = parser.parse_args()
 
-# if (args.mission == 'grammar_demo'):
-#     mission = grammar_mission
-#     mission.run_mission(mission)
+if (args.mission == 'grammar_demo'):
+     mission = grammar_mission
+     mission.run_mission(mission)
