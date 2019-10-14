@@ -57,10 +57,11 @@ class TabQAgent(Agent):
         return json.loads(self.host.state.observations[-1].text)
 
     def addObservations(self, observation):
-        self.host.updateLogicState(self.host.state.observations[-1].append[observation])
+        observation = observation or self.host.state
+        self.host.updateLogicState(observation)
 
     def queryActions(self, world_state, current_r):
-        self.host.updateLogicState(world_state)
+        self.addObservations(world_state)
         obs_text = world_state.observations[-1].text
         obs = json.loads(obs_text) # most recent observation
         self.logger.debug(obs)

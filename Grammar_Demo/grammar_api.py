@@ -23,6 +23,12 @@ if sys.version_info[0] == 2:
 else:
     import tkinter as tk
 
+if sys.version_info[0] == 2:
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
+else:
+    import functools
+    print = functools.partial(print, flush=True)
+
 class grammar_logic:
     #Rules (https://textworld.readthedocs.io/en/latest/textworld.logic.html) also work/Predicates
     def __init__(self, rules=None, logicalActions=None, triggers=None, goals=None, predicates=None):
@@ -58,12 +64,6 @@ class grammar_logic:
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
     def __init__(self, mission_file=None, quest_file=None, agent=None, grammar_logic=None):
-        if sys.version_info[0] == 2:
-            sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
-        else:
-            import functools
-            print = functools.partial(print, flush=True)
-        
         self.mission_file = mission_file or './grammar_demo.xml'
         self.quest_file = quest_file or './quest_entities.xml'
         self.grammar_logic = grammar_logic or grammar_logic()
