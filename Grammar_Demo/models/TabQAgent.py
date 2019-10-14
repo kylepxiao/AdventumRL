@@ -7,7 +7,7 @@ from builtins import object
 from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
 from MalmoLogicState import *
 from constants import *
-from Agent import Agent
+from models.Agent import Agent
 import MalmoPython
 import json
 import logging
@@ -43,7 +43,7 @@ class TabQAgent(Agent):
         self.canvas = None
         self.root = None
         self.grammar_logic = grammar_logic
-        self.host = LogicalAgentHost(self.mission_file, self.quest_file, self.grammar_logic.logicalActions, self.grammar_logic.goals, self.grammar_logic.triggers)
+        self.host = LogicalAgentHost(mission_file, quest_file, self.grammar_logic.logicalActions, self.grammar_logic.goals, self.grammar_logic.triggers)
         self.alpha = 0.5
         self.gamma = 0.9
 
@@ -103,6 +103,9 @@ class TabQAgent(Agent):
 
     def setState(self, world_state):
         self.host.updateLogicState(world_state)
+
+    def train(self):
+        raise NotImplementedError
 
     def updateQTable(self, reward, current_state ):
         """Change q_table to reflect what we have learnt."""

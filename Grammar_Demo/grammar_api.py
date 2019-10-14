@@ -7,7 +7,8 @@ from builtins import object
 from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
 from MalmoLogicState import *
 from constants import *
-from models import *
+from models.Agent import Agent
+from models.TabQAgent import TabQAgent
 import MalmoPython
 import json
 import logging
@@ -16,6 +17,7 @@ import random
 import sys
 import time
 import argparse
+
 
 if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262
@@ -177,5 +179,6 @@ parser.add_argument("mission", help='choose which mission to run')
 args = parser.parse_args()
 
 if (args.mission == 'grammar_demo'):
-     mission = grammar_mission
-     mission.run_mission(mission)
+    mission = grammar_mission
+    mission.setAgent(mission, TabQAgent(mission.getGrammar, mission.getMission, mission.getQuest))
+    mission.run_mission(mission)
