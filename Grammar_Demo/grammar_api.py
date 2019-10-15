@@ -46,7 +46,7 @@ class grammar_logic:
         goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
         goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "quit", 200)
         goal = [(Proposition("in", [itemVars['diamond'], boundary1Var]), True), (Proposition("in", [itemVars['diamond'], inventoryVar]), True)]
-        
+
         self.logicalActions = logicalActions or [grabAction, unlockAction, goalAction]
         self.triggers = triggers or [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
         self.goals = goals or goal
@@ -62,13 +62,13 @@ class grammar_logic:
     def addPredicate(self, name, parameters):
         self.predicates.append(Predicate(name, parameters)) #If class A is related to class B, return true (Any Key next to Any Door)
 
-    
+
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
     def __init__(self, mission_file=None, quest_file=None, agent=None, grammarlogic=None):
         self.mission_file = mission_file or './grammar_demo.xml'
         self.quest_file = quest_file or './quest_entities.xml'
-        self.grammar_logic = grammarlogic or grammar_logic
+        self.grammar_logic = grammarlogic or grammar_logic()
         self.agent = agent
 
     def getMission(self):
@@ -81,7 +81,7 @@ class grammar_mission:
         self.quest_file = quest
     def setAgent(self, agent):
         self.agent = agent
-        
+
     def getRewards(self):
         return self.agent.getWorldState().rewards
     def getWorldState(self):
@@ -179,6 +179,6 @@ parser.add_argument("mission", help='choose which mission to run')
 args = parser.parse_args()
 
 if (args.mission == 'grammar_demo'):
-    mission = grammar_mission
-    mission.setAgent(mission, TabQAgent(mission.getGrammar, mission.getMission, mission.getQuest))
-    mission.run_mission(mission)
+    mission = grammar_mission()
+    mission.setAgent(TabQAgent(mission.getGrammar(), mission.getMission(), mission.getQuest()))
+    mission.run_mission()
