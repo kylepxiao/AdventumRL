@@ -179,6 +179,10 @@ class DeepQLearner(object):
             a_list.append(a)
             s_prime_list.append(s_prime)
             r_list.append(r)
+        sample_set = {}
+        for sample in reversed(self.samples):
+            sample_set[str(sample)] = sample
+        self.samples = list(sample_set.values())
         self.samples.sort(key = lambda x: x[3])
 
         self.model.eval()
