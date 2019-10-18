@@ -3,22 +3,27 @@ import random as rand
 import torch
 import torch.nn as nn
 import os
+#from collections import deque
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size=31, hidden_size=20, num_classes=2):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, 23)
+        self.fc0 = nn.Linear(input_size, 31)
+        self.activate0 = nn.LeakyReLU()
+        self.fc1 = nn.Linear(31, 31)
         self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(23, 15)
+        self.fc2 = nn.Linear(31, 23)
         self.activate2 = nn.LeakyReLU()
         self.dropout2 = nn.Dropout(p=0.05)
-        self.fc3 = nn.Linear(15, num_classes)
-        #self.activate3 = nn.Sigmoid()
-        #self.dropout3 = nn.Dropout(p=0.05)
-        #self.fc4 = nn.Linear(hidden_size, num_classes)
+        self.fc3 = nn.Linear(23, 15)
+        self.activate3 = nn.LeakyReLU()
+        self.dropout3 = nn.Dropout(p=0.05)
+        self.fc4 = nn.Linear(15, num_classes)
 
     def forward(self, x):
+        out = self.fc0(x)
+        out = self.activate0(out)
         out = self.fc1(x)
         out = self.activate1(out)
         #out = self.dropout1(out)
@@ -26,9 +31,9 @@ class NeuralNet(nn.Module):
         out = self.activate2(out)
         #out = self.dropout2(out)
         out = self.fc3(out)
-        #out = self.activate3(out)
+        out = self.activate3(out)
         #out = self.dropout3(out)
-        #out = self.fc4(out)
+        out = self.fc4(out)
         return out
 
 class DeepQLearner(object):
@@ -57,6 +62,7 @@ class DeepQLearner(object):
         self.rar = rar
         self.radr = radr
         self.dyna = dyna
+        self.max_samples = 100
         self.samples = []
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -104,6 +110,8 @@ class DeepQLearner(object):
             self.model.eval()
             with torch.no_grad():
                 self.samples.append([self.s, self.a, s_prime, r])
+                while len(self.samples) > self.max_samples:
+                    self.samples.pop()
                 next_output = self.model(torch.Tensor([s_prime]).to(self.device))
                 next_output_Q, next_output_action = torch.max(next_output.data, 1)
                 self.a = next_output_action[0].item()
@@ -122,9 +130,11 @@ class DeepQLearner(object):
         @param r: The reward
         @returns: The selected action
         """
+        self.samples.append([self.s, self.a, s_prime, r])
+        while len(self.samples) > self.max_samples:
+            self.samples.pop()
         self.model.eval()
         with torch.no_grad():
-            self.samples.append([self.s, self.a, s_prime, r])
             next_output = self.model(torch.Tensor([s_prime]).to(self.device))
             print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
@@ -155,17 +165,25 @@ class DeepQLearner(object):
         @summary: Runs dyna on saved samples
         @returns: The loss for the epoch
         """
+        if len(self.samples) == 0:
+            return
         s_list = []
         a_list = []
         s_prime_list = []
         r_list = []
-        rand.shuffle(self.samples)
-        for sample in self.samples:
+        #rand.shuffle(self.samples)
+        curr_samples = rand.sample(self.samples, len(self.samples))
+        for sample in curr_samples:
             [s, a, s_prime, r] = sample
             s_list.append(s)
             a_list.append(a)
             s_prime_list.append(s_prime)
             r_list.append(r)
+        sample_set = {}
+        for sample in reversed(self.samples):
+            sample_set[str(sample)] = sample
+        self.samples = list(sample_set.values())
+        self.samples.sort(key = lambda x: x[3])
 
         self.model.eval()
         with torch.no_grad():
