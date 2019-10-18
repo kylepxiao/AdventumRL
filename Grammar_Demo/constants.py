@@ -1,28 +1,6 @@
 from textworld.logic import Variable, Proposition
 import MalmoPython
 
-worldVar = Variable("world", "world")
-playerVar = Variable("player", "agent")
-inventoryVar = Variable("inventory", "inventory")
-curInventoryVar = Variable("current", "inventory")
-doorVar = Variable("door", "unlockable")
-boundary1Var = Variable("boundary1", "boundary")
-boundary2Var = Variable("boundary2", "boundary")
-boundary3Var = Variable("boundary3", "boundary")
-
-itemVars = {
-    "apple" : Variable("apple", "item"),
-    "diamond" : Variable("diamond", "item")
-}
-
-defaultFacts = { Proposition("in", [var, worldVar]) for var in itemVars.values() }.union({
-    Proposition("at", [playerVar, worldVar]),
-    Proposition("in", [inventoryVar, worldVar]),
-    Proposition("locked", [doorVar]),
-    Proposition("notreached", [boundary1Var]),
-    Proposition("by", [playerVar, doorVar])
-    })
-
 class Boundary(Variable):
     def __init__(self, name, pmin, pmax):
         super().__init__(name, type="boundary")
@@ -35,6 +13,10 @@ class Boundary(Variable):
 
     def position(self):
         return ((self.x1, self.y1, self.z1), (self.x2, self.y2, self.z2))
+
+    def roundPosition(self):
+        return ((int(round(self.x1)), int(round(self.y1)), int(round(self.z1))),
+            (int(round(self.x2)), int(round(self.y2)), int(round(self.z2))))
 
     def setPosition(self, x1, y1, z1, x2, y2, z2):
         self.x1 = float(x1)
@@ -89,7 +71,7 @@ class Item(Variable):
                     return True
         return False
 
-class Agent(Variable):
+class Actor(Variable):
     def __init__(self, name, x, y, z):
         super().__init__(name, type="agent")
         self.x = int(float(x))

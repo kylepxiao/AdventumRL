@@ -8,6 +8,7 @@ from builtins import object
 from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
 from MalmoLogicState import *
 from constants import *
+from models.Agent import Agent
 import MalmoPython
 import json
 import logging
@@ -23,10 +24,10 @@ else:
 
 world_bounds = ((-2, -2), (7, 13))
 
-class DQNAgent(object):
+class DQNAgent(Agent):
     """Deep Q-learning agent for discrete state/action spaces."""
 
-    def __init__(self, grammar_logic, mission_file=None, quest_file=None):
+    def __init__(self, agentHost=None):
         self.logger = logging.getLogger(__name__)
         if False: # True if you want to see more information
             self.logger.setLevel(logging.DEBUG)
@@ -35,21 +36,79 @@ class DQNAgent(object):
         self.logger.handlers = []
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
 
+        self.host = agentHost
+        logicState = agentHost.state
         self.move_actions = ["movenorth 1", "movesouth 1", "movewest 1", "moveeast 1"]
-        self.grammar_logic = grammar_logic
+        (x1, y1, z1), (x2, y2, z2) = logicState.world_bounds.roundPosition()
         self.learner = DeepQLearner(
-            input_size= (world_bounds[1][0]-world_bounds[0][0]+1)
-                + (world_bounds[1][1]-world_bounds[0][1]+1)
-                + len(grammar_logic.logicalActions) + len(grammar_logic.triggers),
-            num_actions=len(self.move_actions) + len(grammar_logic.logicalActions),
+            input_size= (x2-x1+1) + (z2-z1+1)
+                + len(logicState.actions) + len(logicState.triggers),
+            num_actions=len(self.move_actions) + len(logicState.actions),
             load_path='cache/dqn.pkl',
             save_path='cache/dqn.pkl',
             verbose=False)
 
         self.canvas = None
         self.root = None
-        self.host = LogicalAgentHost(mission_file, quest_file, self.grammar_logic.logicalActions, self.grammar_logic.goals, self.grammar_logic.triggers, world_bounds)
         self.gamma = 0.9
+
+    def updateGrammar(self, agentHost):
+        self.host = agentHost
+
+    def getActionSpace(self):
+        return self.host.getApplicableActions()
+
+    def getObservations(self):
+        return json.loads(self.host.state.observations[-1].text)
+
+    def addObservations(self, observation):
+        observation = observation or self.host.state
+        self.host.updateLogicState(observation)
+
+    def queryActions(self, world_state, current_r ):
+        """take 1 action in response to the current world state"""
+
+        self.host.updateLogicState(world_state)
+        obs_text = world_state.observations[-1].text
+        obs = json.loads(obs_text) # most recent observation
+        self.logger.debug(obs)
+        if not u'XPos' in obs or not u'ZPos' in obs:
+            self.logger.error("Incomplete observation received: %s" % obs_text)
+            return 0
+
+        current_s = self.host.state.getStateEmbedding()
+        print(current_s)
+        logicalActions = self.host.state.getApplicableActions()
+        actions = self.move_actions + logicalActions
+        self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
+
+        # update Q values
+        if self.prev_s is not None and self.prev_a is not None:
+            a = self.learner.query(current_s, current_r)
+            self.learner.run_dyna()
+        else:
+            a = self.learner.querysetstate(current_s)
+
+        #self.drawQ( curr_x = int(obs[u'XPos']), curr_y = int(obs[u'ZPos']) )
+
+        self.logger.info("Taking q action: %s" % actions[a % len(actions)])
+
+        # try to send the selected action, only update prev_s if this succeeds
+        try:
+            self.host.sendCommand(actions[a % len(actions)], is_logical = a % len(actions) >= len(self.move_actions))
+            self.prev_s = current_s
+            self.prev_a = a
+
+        except RuntimeError as e:
+            self.logger.error("Failed to send command: %s" % e)
+
+        return actions[a], current_r
+
+    def setState(self, world_state):
+        self.host.updateLogicState(world_state)
+
+    def train(self):
+        raise NotImplementedError
 
     def act(self, world_state, current_r ):
         """take 1 action in response to the current world state"""

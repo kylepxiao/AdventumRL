@@ -26,15 +26,14 @@ else:
 class TabQAgent(Agent):
     """Tabular Q-learning agent for discrete state/action spaces."""
 
-    def __init__(self, grammar_logic, mission_file=None, quest_file=None):
+    def __init__(self, agentHost=None):
         self.epsilon = 0.1 # chance of taking a random action instead of the best
-        self.mission_file = mission_file
-        self.quest_file = quest_file
         self.logger = logging.getLogger(__name__)
         if False: # True if you want to see more information
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
+        self.host = agentHost
         self.logger.handlers = []
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
         self.move_actions = ["movenorth 1", "movesouth 1", "movewest 1", "moveeast 1"]
@@ -42,13 +41,11 @@ class TabQAgent(Agent):
         self.logical_q_table = {}
         self.canvas = None
         self.root = None
-        self.grammar_logic = grammar_logic
-        self.host = LogicalAgentHost(mission_file, quest_file, self.grammar_logic.logicalActions, self.grammar_logic.goals, self.grammar_logic.triggers)
         self.alpha = 0.5
         self.gamma = 0.9
 
-    def updateGrammar(self, grammar):
-        self.host = LogicalAgentHost(self.mission_file, self.quest_file, grammar.logicalActions, grammar.goals, grammar.triggers)
+    def updateGrammar(self, agentHost):
+        self.host = agentHost
 
     def getActionSpace(self):
         return self.host.getApplicableActions()

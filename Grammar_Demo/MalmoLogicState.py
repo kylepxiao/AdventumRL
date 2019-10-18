@@ -7,14 +7,14 @@ from constants import *
 from math import sin, cos, exp
 
 class MalmoLogicState(State):
-    def __init__(self, facts=None, actions=[], triggers=[], entities={}, boundaries={}, goal=None, world_bounds = None):
+    def __init__(self, facts=None, actions=[], triggers=[], entities={}, boundaries={}, goal=None):
         super().__init__(facts=facts)
         self.actions = actions
         self.triggers = triggers
         self.entities = entities
         self.boundaries = boundaries
         self.goal = goal
-        self.world_bounds = world_bounds
+        self.world_bounds = entities['world_bounds']
         self.yaw = 0
         self.pitch = 0
 
@@ -23,7 +23,7 @@ class MalmoLogicState(State):
         self.relations = list(set([fact.name for fact in self.facts]))
 
     def copy(self):
-        return MalmoLogicState(facts=self.facts, actions=self.actions, triggers=self.triggers, entities=self.entities, boundaries=self.boundaries, goal=self.goal, world_bounds=self.world_bounds)
+        return MalmoLogicState(facts=self.facts, actions=self.actions, triggers=self.triggers, entities=self.entities, boundaries=self.boundaries, goal=self.goal)
 
     def all_applicable_actions(self, rules=None, mapping=None):
         if rules is not None:
@@ -65,6 +65,7 @@ class MalmoLogicState(State):
                 self.remove_fact( Proposition("by", [self.entities['player'], self.entities[boundary]]) )
 
         # Add all inventory propositions to world state
+        curInventoryVar = Variable("current", "inventory")
         if 'inventory' in observation:
             inventory = observation['inventory']
             inventoryVar = Variable("inventory", "inventory")
@@ -97,10 +98,11 @@ class MalmoLogicState(State):
             zValue = 1 / (1 + exp(float(self.entities[entity].z)))
             return [xValue, zValue] + actionflags + triggerflags
         else:
+            (x1, y1, z1), (x2, y2, z2) = self.world_bounds.roundPosition()
             actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
             triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
-            xValue = [1 if round(self.entities[entity].x) == i else 0 for i in range(self.world_bounds[0][0], self.world_bounds[1][0]+1, 1)]
-            zValue = [1 if round(self.entities[entity].z) == i else 0 for i in range(self.world_bounds[0][1], self.world_bounds[1][1]+1, 1)]
+            xValue = [1 if round(self.entities[entity].x) == i else 0 for i in range(x1, x2+1, 1)]
+            zValue = [1 if round(self.entities[entity].z) == i else 0 for i in range(z1, z2+1, 1)]
             return xValue + zValue + actionflags + triggerflags
 
     def getRelationalKnowledgeGraph(self):
@@ -184,75 +186,16 @@ class MalmoLogicState(State):
                 return fact
         return None
 
-def getInitialWorldState(mission_file=None, quest_file=None, world_bounds=None):
-    state_list = defaultFacts
-    # define global objects and propositions
-    entities = {}
-    objectVars = {}
-    objectProps = {}
-    props = set()
-    boundaries = set()
 
-    if quest_file is not None:
-        # parse XML
-        questTree = ET.parse(quest_file)
-        objectTags = [("Grid", "boundary")]
-        ns = namespace(questTree.getroot())
-        objectTargets = dict((ns + tag[0], tag[1]) for tag in objectTags)
-
-        for item in questTree.iter():
-            if item.tag in objectTargets.keys():
-                item_class = objectTargets[item.tag]
-                currentVar = Variable(item.attrib['name'], item_class)
-                if item_class == "boundary":
-                    for child in item.iter():
-                        if child.tag[len(ns):] == "min":
-                            pmin = (child.attrib['x'], child.attrib['y'], child.attrib['z'])
-                        elif child.tag[len(ns):] == "max":
-                            pmax = (child.attrib['x'], child.attrib['y'], child.attrib['z'])
-                    currentVar = Boundary(item.attrib['name'], pmin, pmax)
-                    entities[item.attrib['name']] = currentVar
-                    boundaries.add(item.attrib['name'])
-                    props.add(Proposition("in", [currentVar, worldVar]))
-
-    if mission_file is not None:
-        # parse XML
-        missionTree = ET.parse(mission_file)
-        objectTags = [("DrawBlock", "block"), ("DrawItem", "item")]
-        ns = namespace(missionTree.getroot())
-        objectTargets = dict((ns + tag[0], tag[1]) for tag in objectTags)
-
-        for item in missionTree.iter():
-            if item.tag in objectTargets.keys():
-                item_class = objectTargets[item.tag]
-                currentVar = Variable(item.attrib['type'], item_class)
-                if item_class == "item":
-                    currentVar = Item(item.attrib['type'], item.attrib['x'], item.attrib['y'], item.attrib['z'])
-                    entities[item.attrib['type']] = currentVar
-                    props.add(Proposition("in", [currentVar, worldVar]))
-                    for boundary in boundaries:
-                        if entities[boundary].contains(currentVar):
-                            props.add(Proposition("in", [currentVar, entities[boundary]]))
-            elif item.tag == ns + "AgentStart":
-                for child in item.iter():
-                    if child.tag[len(ns):] == "Placement":
-                        currentVar = Agent("player", child.attrib['x'], child.attrib['y'], child.attrib['z'])
-                        entities['player'] = currentVar
-                        props.add(Proposition("in", [currentVar, worldVar]))
-                        props.add(Proposition("has", [playerVar, inventoryVar]))
-
-        state_list = state_list.union( props )
-
-    return MalmoLogicState(facts=state_list, entities=entities, boundaries=boundaries)
 
 class LogicalAgentHost(MalmoPython.AgentHost):
-    def __init__(self, mission_file=None, quest_file=None, actions=[], goal=None, triggers=[], world_bounds=None):
+    def __init__(self, initialState = None, actions=[], goal=None, triggers=[]):
         super().__init__()
-        self.state = MalmoLogicState() if mission_file is None else getInitialWorldState(mission_file, quest_file)
+        self.state = initialState
         self.state.goal = goal
         self.state.actions = actions
         self.state.triggers = triggers
-        self.state.world_bounds = world_bounds
+        self.state.world_bounds = self.state.entities['world_bounds']
         self.reward = 0
         self.initialState = self.state.copy()
         self.pastHeuristic = self.initialState.goalHeuristic()

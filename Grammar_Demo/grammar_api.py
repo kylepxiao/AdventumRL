@@ -20,8 +20,7 @@ import sys
 import time
 import argparse
 
-
-"""if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262
     import Tkinter as tk
 else:
@@ -31,15 +30,17 @@ if sys.version_info[0] == 2:
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
 else:
     import functools
-    print = functools.partial(print, flush=True)"""
+    print = functools.partial(print, flush=True)
 
-class grammar_logic:
+class GrammarLogic:
     #Rules (https://textworld.readthedocs.io/en/latest/textworld.logic.html) also work/Predicates
     def __init__(self, file=None):
         self.parser = GrammarParser(file=file)
+        self.variables = self.parser.getVariables()
+        self.defaultFacts = self.parser.getDefaultFacts()
         self.logicalActions = self.parser.getActions()
         self.triggers = self.parser.getTriggers()
-        self.goals = self.parser.getGoal()
+        self.goal = self.parser.getGoal()
         self.rules = []
         self.predicates = []
 
@@ -53,13 +54,77 @@ class grammar_logic:
         self.predicates.append(Predicate(name, parameters)) #If class A is related to class B, return true (Any Key next to Any Door)
 
 
-class grammar_mission:
+class GrammarMission:
     # Also add support to allow users to run their own mission through here
-    def __init__(self, mission_file=None, quest_file=None, agent=None, grammar_file=None):
-        self.mission_file = mission_file or './grammar_demo.xml'
-        self.quest_file = quest_file or './quest_entities.xml'
-        self.grammar_logic = grammar_logic(grammar_file) if grammar_file is not None else grammar_logic(file="quest_grammar.json")
+    def __init__(self, mission_file='./grammar_demo.xml', quest_file='./quest_entities.xml', grammar_file="./quest_grammar.json", agent=None):
+        self.mission_file = mission_file
+        self.quest_file = quest_file
+        self.grammar_file = grammar_file
+        self.grammar_logic = GrammarLogic(grammar_file)
         self.agent = agent
+
+    def getInitialWorldState(self):
+        state_list = set(self.grammar_logic.defaultFacts)
+        # define global objects and propositions
+        entities = {}
+        objectVars = {}
+        objectProps = {}
+        props = set()
+        boundaries = set()
+
+        if self.quest_file is not None:
+            # parse XML
+            questTree = ET.parse(self.quest_file)
+            objectTags = [("Grid", "boundary")]
+            ns = namespace(questTree.getroot())
+            objectTargets = dict((ns + tag[0], tag[1]) for tag in objectTags)
+
+            for item in questTree.iter():
+                if item.tag in objectTargets.keys():
+                    item_class = objectTargets[item.tag]
+                    currentVar = Variable(item.attrib['name'], item_class)
+                    if item_class == "boundary":
+                        for child in item.iter():
+                            if child.tag[len(ns):] == "min":
+                                pmin = (child.attrib['x'], child.attrib['y'], child.attrib['z'])
+                            elif child.tag[len(ns):] == "max":
+                                pmax = (child.attrib['x'], child.attrib['y'], child.attrib['z'])
+                        currentVar = Boundary(item.attrib['name'], pmin, pmax)
+                        entities[item.attrib['name']] = currentVar
+                        boundaries.add(item.attrib['name'])
+                        #props.add(Proposition("in", [currentVar, worldVar]))
+
+        if self.mission_file is not None:
+            # parse XML
+            missionTree = ET.parse(self.mission_file)
+            objectTags = [("DrawBlock", "block"), ("DrawItem", "item")]
+            ns = namespace(missionTree.getroot())
+            objectTargets = dict((ns + tag[0], tag[1]) for tag in objectTags)
+
+            for item in missionTree.iter():
+                if item.tag in objectTargets.keys():
+                    item_class = objectTargets[item.tag]
+                    currentVar = Variable(item.attrib['type'], item_class)
+                    if item_class == "item":
+                        currentVar = Item(item.attrib['type'], item.attrib['x'], item.attrib['y'], item.attrib['z'])
+                        entities[item.attrib['type']] = currentVar
+                        for boundary in boundaries:
+                            if entities[boundary].contains(currentVar):
+                                props.add(Proposition("in", [currentVar, entities[boundary]]))
+                elif item.tag == ns + "AgentStart":
+                    for child in item.iter():
+                        if child.tag[len(ns):] == "Placement":
+                            currentVar = Actor("player", child.attrib['x'], child.attrib['y'], child.attrib['z'])
+                            entities['player'] = currentVar
+
+            state_list = state_list.union( props )
+        return MalmoLogicState(facts=state_list,
+            actions=self.grammar_logic.logicalActions,
+            triggers=self.grammar_logic.triggers,
+            entities=entities,
+            boundaries=boundaries,
+            goal=self.grammar_logic.goal)
+
     def getMission(self):
         return self.mission_file
     def setMission(self, mission):
@@ -68,9 +133,15 @@ class grammar_mission:
         return self.quest_file
     def setQuest(self, quest):
         self.quest_file = quest
-    def setAgent(self, agent):
-        self.agent = agent
-
+    def setAgent(self, agent: Agent):
+        self.agent = agent(
+            LogicalAgentHost(
+                initialState = self.getInitialWorldState(),
+                actions = self.grammar_logic.logicalActions,
+                goal = self.grammar_logic.goal,
+                triggers = self.grammar_logic.triggers
+            )
+        )
     def getRewards(self):
         return self.agent.getWorldState().rewards
     def getWorldState(self):
@@ -153,7 +224,6 @@ class grammar_mission:
         print(cumulative_rewards)
         return
 
-#if __name__ == "__main__":
 parser = argparse.ArgumentParser(description='Run missions in Malmo')
 parser.add_argument("--mission_file", help='choose which mission file to run', default='./grammar_demo.xml')
 parser.add_argument("--quest_file", help='choose file to specify quest entities', default='./quest_entities.xml')
@@ -162,11 +232,11 @@ parser.add_argument("--agent", help='choose which agent to run (TabQAgent, DQNAg
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    mission = grammar_mission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file)
+    mission = GrammarMission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file)
     if args.agent == 'TabQAgent':
-        mission.setAgent(TabQAgent(mission.getGrammar(), mission.getMission(), mission.getQuest()))
+        mission.setAgent(TabQAgent)
     elif args.agent == 'DQNAgent':
-        mission.setAgent(DQNAgent(mission.getGrammar(), mission.getMission(), mission.getQuest()))
+        mission.setAgent(DQNAgent)
     else:
         print("unrecognized agent")
     mission.run_mission()

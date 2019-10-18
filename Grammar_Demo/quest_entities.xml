@@ -12,4 +12,8 @@
       <min x="4"  y="-99" z="6"/>
       <max x="99" y="99" z="99"/>
     </Grid>
+    <Grid name="world_bounds">
+      <min x="-2"  y="-99" z="-2"/>
+      <max x="7" y="99" z="13"/>
+    </Grid>
 </Quest>

@@ -55,6 +55,28 @@ else:
 
 #unlock = Rule.parse("unlock :: $in(agent, world) & locked(unlockable) -> in(agent, world)")
 
+worldVar = Variable("world", "world")
+playerVar = Variable("player", "agent")
+inventoryVar = Variable("inventory", "inventory")
+curInventoryVar = Variable("current", "inventory")
+doorVar = Variable("door", "unlockable")
+boundary1Var = Variable("boundary1", "boundary")
+boundary2Var = Variable("boundary2", "boundary")
+boundary3Var = Variable("boundary3", "boundary")
+
+itemVars = {
+    "apple" : Variable("apple", "item"),
+    "diamond" : Variable("diamond", "item")
+}
+
+defaultFacts = { Proposition("in", [var, worldVar]) for var in itemVars.values() }.union({
+    Proposition("at", [playerVar, worldVar]),
+    Proposition("in", [inventoryVar, worldVar]),
+    Proposition("locked", [doorVar]),
+    Proposition("notreached", [boundary1Var]),
+    Proposition("by", [playerVar, doorVar])
+    })
+
 grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
 grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
 grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 50")
