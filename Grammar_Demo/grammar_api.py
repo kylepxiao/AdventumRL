@@ -7,8 +7,10 @@ from builtins import object
 from textworld.logic import Action, Rule, Placeholder, Predicate, Proposition, Signature, State, Variable
 from MalmoLogicState import *
 from constants import *
+from parse_grammar import GrammarParser
 from models.Agent import Agent
 from models.TabQAgent import TabQAgent
+from models.DQNAgent import DQNAgent
 import MalmoPython
 import json
 import logging
@@ -19,7 +21,7 @@ import time
 import argparse
 
 
-if sys.version_info[0] == 2:
+"""if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262
     import Tkinter as tk
 else:
@@ -29,29 +31,17 @@ if sys.version_info[0] == 2:
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
 else:
     import functools
-    print = functools.partial(print, flush=True)
+    print = functools.partial(print, flush=True)"""
 
 class grammar_logic:
     #Rules (https://textworld.readthedocs.io/en/latest/textworld.logic.html) also work/Predicates
-    def __init__(self, rules=None, logicalActions=None, triggers=None, goals=None, predicates=None):
-        grabPrecondition = [Proposition("notreached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
-        grabPostcondition = [Proposition("reached", [boundary1Var]), Proposition("in", [playerVar, boundary1Var])]
-        grabAction = LogicalAction("grab", grabPrecondition, grabPostcondition, "reward 50")
-
-        lockPrecondition = [Proposition("in", [playerVar, boundary2Var]), Proposition("in", [itemVars["diamond"], inventoryVar]), Proposition("locked", [doorVar])]
-        lockPostcondition = [Proposition("unlocked", [doorVar])]
-        unlockAction = LogicalAction("unlock", lockPrecondition, lockPostcondition, "discardCurrentItem", 75)
-
-        goalPrecondition = [Proposition("unlocked", [doorVar]), Proposition("in", [playerVar, boundary3Var])]
-        goalPostcondition = [Proposition("in", [playerVar, boundary3Var])]
-        goalAction = LogicalAction("goal", goalPrecondition, goalPostcondition, "quit", 200)
-        goal = [(Proposition("in", [itemVars['diamond'], boundary1Var]), True), (Proposition("in", [itemVars['diamond'], inventoryVar]), True)]
-
-        self.logicalActions = logicalActions or [grabAction, unlockAction, goalAction]
-        self.triggers = triggers or [Proposition("notreached", [boundary1Var]), Proposition("locked", [doorVar])]
-        self.goals = goals or goal
-        self.rules = rules or []
-        self.predicates = predicates or []
+    def __init__(self, file=None):
+        self.parser = GrammarParser(file=file)
+        self.logicalActions = self.parser.getActions()
+        self.triggers = self.parser.getTriggers()
+        self.goals = self.parser.getGoal()
+        self.rules = []
+        self.predicates = []
 
     #Intermediate methods that will eventually be replaced by a parser (maybe integrated into agents/its own file?)
     def addRule(self, name, precondition, postcondition):
@@ -65,12 +55,11 @@ class grammar_logic:
 
 class grammar_mission:
     # Also add support to allow users to run their own mission through here
-    def __init__(self, mission_file=None, quest_file=None, agent=None, grammarlogic=None):
+    def __init__(self, mission_file=None, quest_file=None, agent=None, grammar_file=None):
         self.mission_file = mission_file or './grammar_demo.xml'
         self.quest_file = quest_file or './quest_entities.xml'
-        self.grammar_logic = grammarlogic or grammar_logic()
+        self.grammar_logic = grammar_logic(grammar_file) if grammar_file is not None else grammar_logic(file="quest_grammar.json")
         self.agent = agent
-
     def getMission(self):
         return self.mission_file
     def setMission(self, mission):
@@ -103,16 +92,6 @@ class grammar_mission:
         self.grammar_logic.triggers.add(trigger)
 
     def run_mission(self): # Running the mission (taken from grammar_demo.py)
-        try:
-            self.agent.host.parse( sys.argv )
-        except RuntimeError as e:
-            print('ERROR:',e)
-            print(self.agent.host.getUsage())
-            exit(1)
-        if self.agent.host.receivedArgument("help"):
-            print(self.agent.host.getUsage())
-            exit(0)
-
         # -- set up the mission -- #
         with open(self.mission_file, 'r') as f:
             print("Loading mission from %s" % self.mission_file)
@@ -174,11 +153,20 @@ class grammar_mission:
         print(cumulative_rewards)
         return
 
+#if __name__ == "__main__":
 parser = argparse.ArgumentParser(description='Run missions in Malmo')
-parser.add_argument("mission", help='choose which mission to run')
+parser.add_argument("--mission_file", help='choose which mission file to run', default='./grammar_demo.xml')
+parser.add_argument("--quest_file", help='choose file to specify quest entities', default='./quest_entities.xml')
+parser.add_argument("--grammar_file", help='choose file to specify logical grammar', default="./quest_grammar.json")
+parser.add_argument("--agent", help='choose which agent to run (TabQAgent, DQNAgent)', default="TabQAgent")
 args = parser.parse_args()
 
-if (args.mission == 'grammar_demo'):
-    mission = grammar_mission()
-    mission.setAgent(TabQAgent(mission.getGrammar(), mission.getMission(), mission.getQuest()))
+if __name__ == "__main__":
+    mission = grammar_mission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file)
+    if args.agent == 'TabQAgent':
+        mission.setAgent(TabQAgent(mission.getGrammar(), mission.getMission(), mission.getQuest()))
+    elif args.agent == 'DQNAgent':
+        mission.setAgent(DQNAgent(mission.getGrammar(), mission.getMission(), mission.getQuest()))
+    else:
+        print("unrecognized agent")
     mission.run_mission()
