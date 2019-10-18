@@ -1,6 +1,6 @@
 import json
 import itertools
-from textworld.logic import Variable, Proposition
+from textworld.logic import Variable, Proposition, Predicate, Rule
 from MalmoLogicState import *
 
 class GrammarParser:
@@ -36,6 +36,27 @@ class GrammarParser:
             a.append(LogicalAction(act["name"], pre, post, act["command"], act["reward"]))
         return a
 
+    def __parsePredicates(self, r):
+        f = []
+        for p in r:
+            temp = []
+            for v in p["vars"]:
+                temp.append(self.__parseVariables(v))
+            for cbn in itertools.product(*temp):
+                if "negate" in p.keys():
+                    f.append((Predicate(p["name"], list(cbn)), not p["negate"]))
+                else:
+                    f.append(Predicate(p["name"], list(cbn)))
+        return f
+
+    def __parseRules(self, r):
+        a = []
+        for act in r:
+            pre = self.__parsePredicates(act["precondition"])
+            post = self.__parsePredicates(act["postcondition"])
+            a.append(Rule(act["name"], pre, post))
+        return a
+
     def getVariables(self):
         return self.__parseVariables(self.data["Variables"])
 
@@ -54,6 +75,12 @@ class GrammarParser:
     def getGoal(self):
         return self.__parseFacts(self.data["Goal"])
 
+    def getPredicates(self):
+        return self.__parsePredicates(self.data["Predicates"])
+
+    def getRules(self):
+        return self.__parseRules(self.data["Rules"])
+
 if __name__ == "__main__":
     parser = GrammarParser("quest_grammar.json")
-    print(parser.getActions())
+    print(parser.getRules())

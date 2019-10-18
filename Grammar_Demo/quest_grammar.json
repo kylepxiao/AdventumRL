@@ -178,6 +178,48 @@
             ]
         }
     ],
-    "Rules": [],
-    "Predicates": []
+    "Predicates": [
+        {
+            "name": "in",
+            "vars": [
+                {"P": ["P"]},
+                {"R": ["R"]}
+            ]
+        }
+    ],
+    "Rules": [
+        {
+            "name": "unlock",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["P"]},
+                        {"boundary": ["B"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["I"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["U"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["U"]}
+                    ]
+                }
+            ]
+        }
+    ]
 }
