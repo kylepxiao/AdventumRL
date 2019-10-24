@@ -23,17 +23,17 @@ import argparse
 if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262
     import Tkinter as tk
-else:
-    import tkinter as tk
-
-if sys.version_info[0] == 2:
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # flush print output immediately
 else:
+    import tkinter as tk
     import functools
     print = functools.partial(print, flush=True)
 
+'''
+@summary: Parses the grammar logic and stores grammar information for a mission
+'''
 class GrammarLogic:
-    #Rules (https://textworld.readthedocs.io/en/latest/textworld.logic.html) also work/Predicates
+    # Rules (https://textworld.readthedocs.io/en/latest/textworld.logic.html) also work/Predicates
     def __init__(self, file=None):
         self.parser = GrammarParser(file=file)
         self.variables = self.parser.getVariables()
@@ -44,18 +44,19 @@ class GrammarLogic:
         self.rules = []
         self.predicates = []
 
-    #Intermediate methods that will eventually be replaced by a parser (maybe integrated into agents/its own file?)
-    def addRule(self, name, precondition, postcondition):
-        self.rules.append(Rule(name, precondition, postcondition)) #Given a scenario (5 keys, 5 doors), create a rule to allow door unlocking and then create actions for all pairs it applies to
-        self.logicalActions.append(LogicalAction(name, precondition, postcondition, None, None)) #Pretty sure this is wrong, but we want to add an action that corresponds to the added rule
-    def addAction(self, name, precondition, postcondition, command, reward):
-        self.logicalActions.append(LogicalAction(name, precondition, postcondition, command, reward))
-    def addPredicate(self, name, parameters):
-        self.predicates.append(Predicate(name, parameters)) #If class A is related to class B, return true (Any Key next to Any Door)
+    # #Intermediate methods that will eventually be replaced by a parser (maybe integrated into agents/its own file?)
+    # def addRule(self, name, precondition, postcondition):
+    #     self.rules.append(Rule(name, precondition, postcondition)) #Given a scenario (5 keys, 5 doors), create a rule to allow door unlocking and then create actions for all pairs it applies to
+    #     self.logicalActions.append(LogicalAction(name, precondition, postcondition, None, None)) #Pretty sure this is wrong, but we want to add an action that corresponds to the added rule
+    # def addAction(self, name, precondition, postcondition, command, reward):
+    #     self.logicalActions.append(LogicalAction(name, precondition, postcondition, command, reward))
+    # def addPredicate(self, name, parameters):
+    #     self.predicates.append(Predicate(name, parameters)) #If class A is related to class B, return true (Any Key next to Any Door)
 
-
+'''
+@summary: Holds all information for the currently executing mission, calls everything else
+'''
 class GrammarMission:
-    # Also add support to allow users to run their own mission through here
     def __init__(self, mission_file='./grammar_demo.xml', quest_file='./quest_entities.xml', grammar_file="./quest_grammar.json", agent=None):
         self.mission_file = mission_file
         self.quest_file = quest_file
@@ -63,9 +64,13 @@ class GrammarMission:
         self.grammar_logic = GrammarLogic(grammar_file)
         self.agent = agent
 
+    '''
+    @summary: Parses the quest and mission files to create the initial world state
+    @returns: The initial world state
+    '''
     def getInitialWorldState(self):
         state_list = set(self.grammar_logic.defaultFacts)
-        # define global objects and propositions
+        # define globa  l objects and propositions
         entities = {}
         objectVars = {}
         objectProps = {}
@@ -125,14 +130,42 @@ class GrammarMission:
             boundaries=boundaries,
             goal=self.grammar_logic.goal)
 
+
+    '''
+    @summary: Gets the current mission being run
+    @returns: The current mission file
+    '''
     def getMission(self):
         return self.mission_file
+
+
+    '''
+    @summary: Sets the current mission to a different one
+    @param mission: The new mission to be run
+    '''
     def setMission(self, mission):
         self.mission_file = mission
+        
+        
+    '''
+    @summary: Gets the current quest being run
+    @returns: The current quest file
+    '''
     def getQuest(self):
         return self.quest_file
+
+
+    '''
+    @summary: Sets the current mission to a different one
+    @param quest: The new quest to be followed
+    '''
     def setQuest(self, quest):
         self.quest_file = quest
+
+    '''
+    @summary: Sets the current agent to a different one
+    @param agent: The new agent to run the mission with
+    '''
     def setAgent(self, agent: Agent):
         self.agent = agent(
             LogicalAgentHost(
@@ -142,26 +175,53 @@ class GrammarMission:
                 triggers = self.grammar_logic.triggers
             )
         )
+
+    '''
+    @summary: Gets the current reward from the agent
+    @returns: Current rewards
+    '''
     def getRewards(self):
         return self.agent.getWorldState().rewards
+
+    '''
+    @summary: Gets the current world state
+    @returns: Current world state
+    '''
     def getWorldState(self):
         return self.agent.getWorldState()
+
+    '''
+    @summary: Gets the current observations about the world
+    @returns: World state observations
+    '''
     def getWorldStateObservations(self):
         return json.loads(self.agent.getWorldState().observations[-1].text)
-        # You'll need to extract the observations from the JSON yourself, includes entity
-        # I'm unsure if -1 is the best way to index, I'm deferring to the official malmo example (https://github.com/microsoft/malmo/pull/192/files)
+
+    '''
+    @summary: Send an action to the agent
+    @param action: An action for the agent to execute
+    '''
     def sendCommand(self, action):
         self.agent.sendCommand(action)
 
-    def setGrammar(self, newGrammar):
-        self.grammar_logic = newGrammar
+    '''
+    @summary: Change the current grammar logic
+    @param grammar: New grammar logic for the mission
+    '''
+    def setGrammar(self, grammar):
+        self.grammar_logic = grammar
+
+    '''
+    @summary: Gets the current grammar logic
+    @returns: Current grammar logic
+    '''
     def getGrammar(self):
         return self.grammar_logic
-    def addGrammarLogicalAction(self, action):
-        self.grammar_logic.logicalActions.append(action)
-    def addGrammarTrigger(self, trigger):
-        self.grammar_logic.triggers.add(trigger)
 
+    
+    '''
+    @summary: Runs the current mission
+    '''
     def run_mission(self): # Running the mission (taken from grammar_demo.py)
         # -- set up the mission -- #
         with open(self.mission_file, 'r') as f:
