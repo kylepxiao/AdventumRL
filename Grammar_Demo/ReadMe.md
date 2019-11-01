@@ -177,3 +177,15 @@ The mission file utilizes Malmo's specifications, for which more detail can be f
     ]
 }
 ```
+
+### Quest Schema
+```
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Quest xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Grid name="Entity Name Here">
+      <min x="min_x" y="min_y" z="min_z"/>
+      <max x="max_x" y="max_y" z="max_z"/>
+    </Grid>
+    ...
+</Quest>
+```
