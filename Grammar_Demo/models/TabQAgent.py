@@ -15,7 +15,6 @@ import os
 import random
 import sys
 import time
-import argparse
 
 if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262

@@ -1,10 +1,10 @@
-# Malmo + Grammar
+# MineQuest 
 
 [TOC]
 
 ## Overview
 
-Malmo + Grammar is an extension to extend the scope of [Malmo](https://github.com/microsoft/malmo), a reinforcement learning platform that hooks into Minecraft (Java Edition). 
+MineQuest is an API framework that allows for complex, mission-based reinforcement learning in Minecraft. It builds upon of [Malmo](https://github.com/microsoft/malmo), a reinforcement learning platform that hooks into Minecraft (Java Edition). MineQuest implements support for propositional logic in a high-level configuration space, and includes sample agents that make use of this grammar in an example cliff-walking mission.
 
 ## Getting Started
 
@@ -12,7 +12,7 @@ Malmo + Grammar is an extension to extend the scope of [Malmo](https://github.co
 
 1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases )
 2. Install the Malmo dependencies for your OS: [Windows](https://github.com/microsoft/malmo/blob/master/doc/install_windows.md), [Linux](https://github.com/microsoft/malmo/blob/master/doc/install_linux.md), [Mac](https://github.com/microsoft/malmo/blob/master/doc/install_macosx.md) (Make sure to install the optional python modules as well)
-3. Download the latest release of [Malmo+Grammar](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
+3. Download the latest release of [MineQuest ](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
 4. Install the following pip modules: Textworld, Nose, PyTorch, and TKinter
    - Linux
      - `sudo pip3 install nose textworld torch`
@@ -29,8 +29,22 @@ When running a mission, you must specify a mission file, quest file, grammar fil
 
 ## Additional Information
 
+### Agents
+
+Currently, MineQuest includes two prebuilt agents, a TabQAgent (`TabQAgent.py`) and a DqnAgent (`DQNAgent.py` ), which can be run on missions. These agents can be modified, and additional agents can be created by referencing files in the `Grammar_Demo/models` folder. The `Agent.py` superclass provides guidelines for methods a new agent might potentially need. 
+
 ### Grammar
 
-Malmo + Grammar supports the use of [Textworld grammar](https://textworld.readthedocs.io/en/latest/textworld.generator.grammar.html) to add additional considerations and information to the mission. 
+MineQuest supports the following logical relations. Additional grammatical constructs can be defined by the player in the quest_grammar.json file. Triggers, facts observable by the general state space, can also be defined. 
+
+- **in** - Whether entity A's coordinates are contained within entity B's coordinates (*Coord(A)*  ⊂  *Coord(B)*)
+- **at** - Whether entity A's coordinates overlap with entity B's coordinates (*Coord(A)*  ∩  *Coord(B)* != 0)
+- **by** - Whether entity A's coordinates are are close enough to entity B's coordinates so entity A can interact with entity B in the Minecraft world (∃ δ <  ε s.t. ((*Coord(A)* *+ δ*) ∩ *Coord(B)* != 0)
+- **unlocked** - A theme specific attribute relation for unlockable items
+- **inhand** - Whether an entity is currently selected by the player and is usable in the world 
 
 ### Mission & Quest Files
+
+The quest file, `quest_entities.xml` can be used to define physical entities in the Minecraft world, including constructs like bounding boxes, which can be particularly helpful when creating a new mission. 
+
+The mission file utilizes Malmo's specifications, for which more detail can be found in their [official documentation](https://github.com/Microsoft/malmo/blob/master/Malmo/samples/Python_examples/Tutorial.pdf). 
