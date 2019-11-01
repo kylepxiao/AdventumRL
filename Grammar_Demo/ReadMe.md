@@ -1,10 +1,21 @@
 # MineQuest 
 
-[TOC]
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Getting Started](#getting-started)
+   1. [Installation](#installation)
+   2. [Running Missions](#running-missions)
+3. [Additional Information](#additional-information)
+   1. [Agents](#agents)
+   2. [Grammar](#grammar)
+   3. [Mission & Quest Files](#mission--quest-files)
+   4. [Grammar Schema](#grammar-schema)
+   5. [Quest Schema](#quest-schema)
 
 ## Overview
 
-MineQuest is an API framework that allows for complex, mission-based reinforcement learning in Minecraft. It builds upon of [Malmo](https://github.com/microsoft/malmo), a reinforcement learning platform that hooks into Minecraft (Java Edition). MineQuest implements support for propositional logic in a high-level configuration space, and includes sample agents that make use of this grammar in an example cliff-walking mission.
+MineQuest is an API framework that allows for complex, mission-based reinforcement learning in Minecraft. It builds upon of [Malmo](https://github.com/microsoft/malmo), a reinforcement learning platform that hooks into Minecraft (Java Edition). MineQuest implements support for propositional logic in a high-level configuration space via [Textworld grammar](https://github.com/microsoft/TextWorld), and includes sample agents that make use of this grammar in an example cliff-walking mission.
 
 ## Getting Started
 
@@ -33,6 +44,8 @@ When running a mission, you must specify a mission file, quest file, grammar fil
 
 Currently, MineQuest includes two prebuilt agents, a TabQAgent (`TabQAgent.py`) and a DqnAgent (`DQNAgent.py` ), which can be run on missions. These agents can be modified, and additional agents can be created by referencing files in the `Grammar_Demo/models` folder. The `Agent.py` superclass provides guidelines for methods a new agent might potentially need. 
 
+The DqnAgent is designed to work on both CPU and GPU, but the trained models that come with MineQuest are set to work with a GPU specifically. 
+
 ### Grammar
 
 MineQuest supports the following logical relations. Additional grammatical constructs can be defined by the player in the quest_grammar.json file. Triggers, facts observable by the general state space, can also be defined. 
@@ -47,10 +60,11 @@ MineQuest supports the following logical relations. Additional grammatical const
 
 The quest file, `quest_entities.xml` can be used to define physical entities in the Minecraft world, including constructs like bounding boxes, which can be particularly helpful when creating a new mission. 
 
-The mission file utilizes Malmo's specifications, for which more detail can be found in their [official documentation](https://github.com/Microsoft/malmo/blob/master/Malmo/samples/Python_examples/Tutorial.pdf). 
+The mission file utilizes Malmo's specifications, for which more detail can be found in their [official documentation]( https://microsoft.github.io/malmo/0.17.0/Schemas/Mission.html). 
 
 ### Grammar Schema
-```
+
+```json
 {
     "Variables": {
         "Type of the variable": ["Name of the variables under type"],
@@ -179,7 +193,7 @@ The mission file utilizes Malmo's specifications, for which more detail can be f
 ```
 
 ### Quest Schema
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Quest xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Grid name="Entity Name Here">
