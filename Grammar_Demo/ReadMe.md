@@ -1,4 +1,4 @@
-# MineQuest 
+# AdventumRL 
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@
 
 ## Overview
 
-MineQuest is an API framework that allows for complex, mission-based reinforcement learning in Minecraft. It builds upon of [Malmo](https://github.com/microsoft/malmo), a reinforcement learning platform that hooks into Minecraft (Java Edition). MineQuest implements support for propositional logic in a high-level configuration space via [Textworld grammar](https://github.com/microsoft/TextWorld), and includes sample agents that make use of this grammar in an example cliff-walking mission.
+AdventumRL is an API framework that allows for complex, mission-based reinforcement learning in Minecraft. It builds upon of [Malmo](https://github.com/microsoft/malmo), a reinforcement learning platform that hooks into Minecraft (Java Edition). AdventumRL implements support for propositional logic in a high-level configuration space via [Textworld grammar](https://github.com/microsoft/TextWorld), and includes sample agents that make use of this grammar in an example cliff-walking mission.
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ MineQuest is an API framework that allows for complex, mission-based reinforceme
 
 1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases )
 2. Install the Malmo dependencies for your OS: [Windows](https://github.com/microsoft/malmo/blob/master/doc/install_windows.md), [Linux](https://github.com/microsoft/malmo/blob/master/doc/install_linux.md), [Mac](https://github.com/microsoft/malmo/blob/master/doc/install_macosx.md) (Make sure to install the optional python modules as well)
-3. Download the latest release of [MineQuest ](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
+3. Download the latest release of [AdventumRL ](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
 4. Install the following pip modules: Textworld, Nose, PyTorch, and TKinter
    - Linux
      - `sudo pip3 install nose textworld torch`
@@ -42,13 +42,13 @@ When running a mission, you must specify a mission file, quest file, grammar fil
 
 ### Agents
 
-Currently, MineQuest includes two prebuilt agents, a TabQAgent (`TabQAgent.py`) and a DqnAgent (`DQNAgent.py` ), which can be run on missions. These agents can be modified, and additional agents can be created by referencing files in the `Grammar_Demo/models` folder. The `Agent.py` superclass provides guidelines for methods a new agent might potentially need. 
+Currently, AdventumRL includes two prebuilt agents, a TabQAgent (`TabQAgent.py`) and a DqnAgent (`DQNAgent.py` ), which can be run on missions. These agents can be modified, and additional agents can be created by referencing files in the `Grammar_Demo/models` folder. The `Agent.py` superclass provides guidelines for methods a new agent might potentially need. 
 
-The DqnAgent is designed to work on both CPU and GPU, but the trained models that come with MineQuest are set to work with a GPU specifically. 
+The DqnAgent is designed to work on both CPU and GPU, but the trained models that come with AdventumRL are set to work with a GPU specifically. 
 
 ### Grammar
 
-MineQuest supports the following logical relations. Additional grammatical constructs can be defined by the player in the quest_grammar.json file. Triggers, facts observable by the general state space, can also be defined. 
+AdventumRL supports the following logical relations. Additional grammatical constructs can be defined by the player in the quest_grammar.json file. Triggers, facts observable by the general state space, can also be defined. 
 
 - **in** - Whether entity A's coordinates are contained within entity B's coordinates (*Coord(A)*  ⊂  *Coord(B)*)
 - **at** - Whether entity A's coordinates overlap with entity B's coordinates (*Coord(A)*  ∩  *Coord(B)* != 0)
