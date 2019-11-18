@@ -1,5 +1,7 @@
 # AdventumRL 
 
+To get started, view grammar_demo folder
+
 ## Table of Contents
 
 1. [Overview](#overview)
