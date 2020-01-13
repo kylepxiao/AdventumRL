@@ -42,6 +42,8 @@ class TabQAgent(Agent):
         self.root = None
         self.alpha = 0.5
         self.gamma = 0.9
+        self.cumulative_rewards = []
+        self.logFile = 'TabQAgent-' + time.strftime("%Y%m%d-%H%M%S") + '.txt'
 
     def updateGrammar(self, agentHost):
         self.host = agentHost
@@ -64,7 +66,6 @@ class TabQAgent(Agent):
         if not u'XPos' in obs or not u'ZPos' in obs:
             self.logger.error("Incomplete observation received: %s" % obs_text)
             return 0
-        print(self.host.state.getStateKey())
 
         current_s = self.host.state.getStateKey()
         logicalActions = self.host.state.getApplicableActions()
@@ -138,7 +139,6 @@ class TabQAgent(Agent):
         if not u'XPos' in obs or not u'ZPos' in obs:
             self.logger.error("Incomplete observation received: %s" % obs_text)
             return 0
-        print(self.host.state.getStateKey())
         #print(self.host.getLogicalActions())
         #print([action for action in self.host.state.all_applicable_actions([unlock], room1_key)])
 
@@ -260,6 +260,8 @@ class TabQAgent(Agent):
 
         self.drawQ()
 
+        self.cumulative_rewards.append(total_reward)
+
         return total_reward
 
     def drawQ(self, curr_x=None, curr_y=None ):
@@ -310,3 +312,8 @@ class TabQAgent(Agent):
                                      (curr_y + 0.5 + curr_radius ) * scale,
                                      outline="#fff", fill="#fff" )
         self.root.update()
+
+    def logOutput(self):
+        with open(os.path.join('logs', self.logFile), 'w') as f:
+            for item in self.cumulative_rewards:
+                f.write("%s\n" % item)

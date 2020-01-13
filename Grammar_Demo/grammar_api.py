@@ -145,8 +145,8 @@ class GrammarMission:
     '''
     def setMission(self, mission):
         self.mission_file = mission
-        
-        
+
+
     '''
     @summary: Gets the current quest being run
     @returns: The current quest file
@@ -218,7 +218,7 @@ class GrammarMission:
     def getGrammar(self):
         return self.grammar_logic
 
-    
+
     '''
     @summary: Runs the current mission
     '''
@@ -235,6 +235,8 @@ class GrammarMission:
                     my_mission.drawBlock( x,45,z,"lava")"""
 
         max_retries = 3
+
+        checkpoint_iter = 100
 
         if self.agent.host.receivedArgument("test"):
             num_repeats = 1
@@ -272,7 +274,11 @@ class GrammarMission:
             # -- run the agent in the world -- #
             cumulative_reward = self.agent.run()
             print('Cumulative reward: %d' % cumulative_reward)
-            cumulative_rewards += [ cumulative_reward ]
+            # cumulative_rewards += [ cumulative_reward ]
+
+            self.agent.logOutput()
+            if i % checkpoint_iter == 0:
+                self.agent.logOutput()
 
             # -- clean up -- #
             time.sleep(0.5) # (let the Mod reset)

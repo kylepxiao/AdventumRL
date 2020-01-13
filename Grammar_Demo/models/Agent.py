@@ -76,4 +76,11 @@ class Agent(ABC):
         @summary: Place the agent in a new state
         @param world_state: The current state the agent will act upon
         """
+        pass     
+       
+    @abc.abstractmethod
+    def logOutput(self): #Log information about training and agent performance
+        """
+        @summary: Log information about training and agent performance
+        """
         pass            

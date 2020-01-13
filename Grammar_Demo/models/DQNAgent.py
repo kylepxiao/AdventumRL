@@ -51,6 +51,10 @@ class DQNAgent(Agent):
         self.canvas = None
         self.root = None
         self.gamma = 0.9
+        self.cumulative_rewards = []
+        tstr = time.strftime("%Y%m%d-%H%M%S")
+        self.logFile = 'DQNAgent-' + tstr + '.txt'
+        self.lossFile = 'DQNAgent_Losses-' + tstr + '.txt'
 
     def updateGrammar(self, agentHost):
         self.host = agentHost
@@ -77,7 +81,6 @@ class DQNAgent(Agent):
             return 0
 
         current_s = self.host.state.getStateEmbedding()
-        print(current_s)
         logicalActions = self.host.state.getApplicableActions()
         actions = self.move_actions + logicalActions
         self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
@@ -122,7 +125,6 @@ class DQNAgent(Agent):
             return 0
 
         current_s = self.host.state.getStateEmbedding()
-        print(current_s)
         logicalActions = self.host.state.getApplicableActions()
         actions = self.move_actions + logicalActions
         self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
@@ -216,6 +218,7 @@ class DQNAgent(Agent):
             self.learner.query( self.host.state.getStateEmbedding(), current_r )
 
         #self.drawQ()
+        self.cumulative_rewards.append(total_reward)
 
         return total_reward
 
@@ -267,6 +270,15 @@ class DQNAgent(Agent):
                                      (curr_y + 0.5 + curr_radius ) * scale,
                                      outline="#fff", fill="#fff" )
         self.root.update()
+
+    def logOutput(self):
+        self.learner.save()
+        with open(os.path.join('logs', self.logFile), 'w') as f:
+            for item in self.cumulative_rewards:
+                f.write("%s\n" % item)
+        with open(os.path.join('logs', self.lossFile), 'w') as f:
+            for item in self.learner.losses:
+                f.write("%s\n" % item)
 
 if __name__ == "__main__":
     if sys.version_info[0] == 2:
@@ -340,10 +352,12 @@ if __name__ == "__main__":
         # -- run the agent in the world -- #
         cumulative_reward = agent.run()
         print('Cumulative reward: %d' % cumulative_reward)
-        cumulative_rewards += [ cumulative_reward ]
+        #cumulative_rewards += [ cumulative_reward ]
 
         if i % checkpoint_iter == 0:
             agent.learner.save()
+
+        agent.logOutput()
 
         # -- clean up -- #
         time.sleep(0.5) # (let the Mod reset)
@@ -352,4 +366,4 @@ if __name__ == "__main__":
 
     print()
     print("Cumulative rewards for all %d runs:" % num_repeats)
-    print(cumulative_rewards)
+    print(self.cumulative_rewards)

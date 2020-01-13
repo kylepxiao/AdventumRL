@@ -136,7 +136,8 @@ class DeepQLearner(object):
         self.model.eval()
         with torch.no_grad():
             next_output = self.model(torch.Tensor([s_prime]).to(self.device))
-            print(next_output)
+            if self.verbose:
+                print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
             expected_reward = r + self.gamma * next_output_Q[0].item()
