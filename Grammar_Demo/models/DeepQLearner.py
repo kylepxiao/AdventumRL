@@ -3,17 +3,26 @@ import random as rand
 import torch
 import torch.nn as nn
 import os
+from collections import defaultdict
 #from collections import deque
+
+def weights_init_uniform(m):
+    classname = m.__class__.__name__
+    # for every Linear layer in a model..
+    if classname.find('Linear') != -1:
+        # apply a uniform distribution to the weights and a bias=0
+        m.weight.data.uniform_(-0.3, 0.3)
+        m.bias.data.fill_(0)
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size=31, hidden_size=20, num_classes=2):
         super(NeuralNet, self).__init__()
-        self.fc0 = nn.Linear(input_size, 31)
+        self.fc0 = nn.Linear(input_size, 256)
         self.activate0 = nn.LeakyReLU()
-        self.fc1 = nn.Linear(31, 31)
+        self.fc1 = nn.Linear(256, 64)
         self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(31, 23)
+        self.fc2 = nn.Linear(64, num_classes)
         self.activate2 = nn.LeakyReLU()
         self.dropout2 = nn.Dropout(p=0.05)
         self.fc3 = nn.Linear(23, 15)
@@ -24,16 +33,51 @@ class NeuralNet(nn.Module):
     def forward(self, x):
         out = self.fc0(x)
         out = self.activate0(out)
-        out = self.fc1(x)
+        out = self.fc1(out)
         out = self.activate1(out)
         #out = self.dropout1(out)
         out = self.fc2(out)
-        out = self.activate2(out)
+        #out = self.activate2(out)
         #out = self.dropout2(out)
-        out = self.fc3(out)
-        out = self.activate3(out)
+        #out = self.fc3(out)
+        #out = self.activate3(out)
         #out = self.dropout3(out)
-        out = self.fc4(out)
+        #out = self.fc4(out)
+        return out
+
+class CNN(nn.Module):
+    def __init__(self, input_size=31, hidden_size=20, num_classes=2):
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, num_classes)
+        self.fc1 = nn.Linear(256, 64)
+        self.activate1 = nn.LeakyReLU()
+        self.dropout1 = nn.Dropout(p=0.05)
+        self.fc2 = nn.Linear(64, num_classes)
+        self.activate2 = nn.LeakyReLU()
+        self.dropout2 = nn.Dropout(p=0.05)
+        self.fc3 = nn.Linear(23, 15)
+        self.activate3 = nn.LeakyReLU()
+        self.dropout3 = nn.Dropout(p=0.05)
+        self.fc4 = nn.Linear(15, num_classes)
+
+    def forward(self, x):
+        out = self.fc0(x)
+        out = self.activate0(out)
+        out = self.fc1(out)
+        out = self.activate1(out)
+        #out = self.dropout1(out)
+        out = self.fc2(out)
+        #out = self.activate2(out)
+        #out = self.dropout2(out)
+        #out = self.fc3(out)
+        #out = self.activate3(out)
+        #out = self.dropout3(out)
+        #out = self.fc4(out)
         return out
 
 class DeepQLearner(object):
@@ -42,13 +86,14 @@ class DeepQLearner(object):
         input_size = 4, \
         num_actions = 2, \
         alpha = 0.2, \
-        gamma = 0.5, \
+        gamma = 0.9, \
         rar = 0.2, \
         radr = 1, \
         dyna = 10, \
-        learning_rate = 0.1, \
+        learning_rate = 0.02, \
         load_path = None, \
         save_path = None, \
+        camera = False, \
         verbose = False):
 
         self.verbose = verbose
@@ -62,12 +107,16 @@ class DeepQLearner(object):
         self.rar = rar
         self.radr = radr
         self.dyna = dyna
-        self.max_samples = 100
+        self.max_samples = 500
         self.samples = []
+        #self.state_actions = defaultdict(int)
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
-
+        if not camera:
+            self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
+        else:
+            self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
+        self.model.apply(weights_init_uniform)
         # Loss and optimizer
         self.criterion = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -97,7 +146,13 @@ class DeepQLearner(object):
             output = self.model(torch.Tensor([s]).to(self.device))
             output_Q, output_action = torch.max(output.data, 1)
             action = output_action[0].item()
+        if self.rar < rand.random():
             return action
+        else:
+            print("RANDOM ACTION")
+            return rand.randint(0, self.num_actions - 1)
+            #least_common = min([(self.state_actions[(tuple(self.s), a)], self.s, a) for a in range(self.num_actions)])
+            #return least_common[2]
 
     def query_dyna(self,s_prime,r):
         """
@@ -109,9 +164,11 @@ class DeepQLearner(object):
         if self.rar < rand.random():
             self.model.eval()
             with torch.no_grad():
-                self.samples.append([self.s, self.a, s_prime, r])
+                if [self.s, self.a, s_prime, r] not in self.samples:
+                    self.samples.append([self.s, self.a, s_prime, r])
+                #self.state_actions[(tuple(self.s), self.a)] += 1
                 while len(self.samples) > self.max_samples:
-                    self.samples.pop()
+                    self.samples.pop(0)
                 next_output = self.model(torch.Tensor([s_prime]).to(self.device))
                 next_output_Q, next_output_action = torch.max(next_output.data, 1)
                 self.a = next_output_action[0].item()
@@ -122,6 +179,7 @@ class DeepQLearner(object):
 
     def clear_dyna(self):
         self.samples = []
+        #self.state_actions = defaultdict(int)
 
     def query(self,s_prime,r):
         """
@@ -130,17 +188,22 @@ class DeepQLearner(object):
         @param r: The reward
         @returns: The selected action
         """
-        self.samples.append([self.s, self.a, s_prime, r])
+        newSample = [self.s, self.a, s_prime, r]
+        if newSample not in self.samples:
+            self.samples.append(newSample)
+            r += 5
         while len(self.samples) > self.max_samples:
-            self.samples.pop()
+            self.samples.pop(0)
         self.model.eval()
         with torch.no_grad():
             next_output = self.model(torch.Tensor([s_prime]).to(self.device))
+            print(next_output)
             if self.verbose:
                 print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
             expected_reward = r + self.gamma * next_output_Q[0].item()
+            print(expected_reward)
 
         self.model.train()
         output = self.model(torch.Tensor([self.s]).to(self.device))
@@ -154,10 +217,22 @@ class DeepQLearner(object):
         self.optimizer.step()
         self.losses.append(loss.item())
 
-        self.s = s_prime
-        self.a = next_action if self.rar < rand.random() else rand.randint(0, self.num_actions - 1)
+        if self.rar < rand.random():
+            self.a = next_action
+        else:
+            print("RANDOM ACTION")
+            self.a = rand.randint(0, self.num_actions - 1)
+            #least_common = min([(self.state_actions[(tuple(self.s), a)], self.s, a) for a in range(self.num_actions)])
+            #self.a = least_common[2]
+            #self.state_actions[(tuple(self.s), self.a)] += 1
         self.rar *= self.radr
 
+        #if newSample not in self.samples:
+        #    self.samples.append(newSample)
+        #while len(self.samples) > self.max_samples:
+        #    self.samples.pop()
+
+        self.s = s_prime
         if self.verbose: print("s =", s_prime,"a =",self.a,"r =",r)
         return self.a
 
@@ -180,10 +255,10 @@ class DeepQLearner(object):
             a_list.append(a)
             s_prime_list.append(s_prime)
             r_list.append(r)
-        sample_set = {}
-        for sample in reversed(self.samples):
-            sample_set[str(sample)] = sample
-        self.samples = list(sample_set.values())
+        #sample_set = {}
+        #for sample in reversed(self.samples):
+        #    sample_set[str(sample)] = sample
+        #self.samples = list(sample_set.values())
         self.samples.sort(key = lambda x: x[3])
 
         self.model.eval()
