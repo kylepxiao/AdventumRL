@@ -2,6 +2,7 @@ import numpy as np
 import random as rand
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import os
 from collections import defaultdict
 #from collections import deque
@@ -51,33 +52,25 @@ class CNN(nn.Module):
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, num_classes)
-        self.fc1 = nn.Linear(256, 64)
+        self.fc1 = nn.Linear(396864, 120)
         self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(64, num_classes)
+        self.fc2 = nn.Linear(120, 84)
         self.activate2 = nn.LeakyReLU()
         self.dropout2 = nn.Dropout(p=0.05)
-        self.fc3 = nn.Linear(23, 15)
-        self.activate3 = nn.LeakyReLU()
-        self.dropout3 = nn.Dropout(p=0.05)
-        self.fc4 = nn.Linear(15, num_classes)
+        self.fc3 = nn.Linear(84, num_classes)
 
     def forward(self, x):
-        out = self.fc0(x)
-        out = self.activate0(out)
+        # Convolution
+        out = self.pool(F.relu(self.conv1(x)))
+        out = self.pool(F.relu(self.conv2(out)))
+        out = out.view(-1, 396864)
+        # Feedforward
         out = self.fc1(out)
         out = self.activate1(out)
-        #out = self.dropout1(out)
         out = self.fc2(out)
-        #out = self.activate2(out)
-        #out = self.dropout2(out)
-        #out = self.fc3(out)
-        #out = self.activate3(out)
-        #out = self.dropout3(out)
-        #out = self.fc4(out)
+        out = self.activate2(out)
+        out = self.fc3(out)
         return out
 
 class DeepQLearner(object):
@@ -109,13 +102,14 @@ class DeepQLearner(object):
         self.dyna = dyna
         self.max_samples = 500
         self.samples = []
+        self.camera = camera
         #self.state_actions = defaultdict(int)
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if not camera:
             self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
         else:
-            self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
+            self.model = CNN(input_size = input_size, num_classes=num_actions).to(self.device)
         self.model.apply(weights_init_uniform)
         # Loss and optimizer
         self.criterion = nn.MSELoss()
@@ -164,7 +158,7 @@ class DeepQLearner(object):
         if self.rar < rand.random():
             self.model.eval()
             with torch.no_grad():
-                if [self.s, self.a, s_prime, r] not in self.samples:
+                if self.camera or [self.s, self.a, s_prime, r] not in self.samples:
                     self.samples.append([self.s, self.a, s_prime, r])
                 #self.state_actions[(tuple(self.s), self.a)] += 1
                 while len(self.samples) > self.max_samples:
@@ -189,9 +183,9 @@ class DeepQLearner(object):
         @returns: The selected action
         """
         newSample = [self.s, self.a, s_prime, r]
-        if newSample not in self.samples:
+        if self.camera or newSample not in self.samples:
             self.samples.append(newSample)
-            r += 5
+            r += 5 if not self.camera else 0
         while len(self.samples) > self.max_samples:
             self.samples.pop(0)
         self.model.eval()
