@@ -57,12 +57,13 @@ class GrammarLogic:
 @summary: Holds all information for the currently executing mission, calls everything else
 '''
 class GrammarMission:
-    def __init__(self, mission_file='./grammar_demo.xml', quest_file='./quest_entities.xml', grammar_file="./quest_grammar.json", agent=None):
+    def __init__(self, mission_file='./grammar_demo.xml', quest_file='./quest_entities.xml', grammar_file="./quest_grammar.json", agent=None, log="off"):
         self.mission_file = mission_file
         self.quest_file = quest_file
         self.grammar_file = grammar_file
         self.grammar_logic = GrammarLogic(grammar_file)
         self.agent = agent
+        self.log = False if log is 'off' else True
 
     '''
     @summary: Parses the quest and mission files to create the initial world state
@@ -222,7 +223,7 @@ class GrammarMission:
     '''
     @summary: Runs the current mission
     '''
-    def run_mission(self): # Running the mission (taken from grammar_demo.py)
+    def run_mission(self, num_repeats=100000): # Running the mission (taken from grammar_demo.py)
         # -- set up the mission -- #
         with open(self.mission_file, 'r') as f:
             print("Loading mission from %s" % self.mission_file)
@@ -238,10 +239,10 @@ class GrammarMission:
 
         checkpoint_iter = 100
 
-        if self.agent.host.receivedArgument("test"):
-            num_repeats = 1
-        else:
-            num_repeats = 150
+        #if self.agent.host.receivedArgument("test"):
+        #    num_repeats = 1
+        #else:
+        #    num_repeats = 150
 
         cumulative_rewards = []
         for i in range(num_repeats):
@@ -276,8 +277,7 @@ class GrammarMission:
             print('Cumulative reward: %d' % cumulative_reward)
             # cumulative_rewards += [ cumulative_reward ]
 
-            self.agent.logOutput()
-            if i % checkpoint_iter == 0:
+            if self.log and (i % checkpoint_iter == 0):
                 self.agent.logOutput()
 
             # -- clean up -- #
@@ -286,8 +286,8 @@ class GrammarMission:
         print("Done.")
 
         print()
-        print("Cumulative rewards for all %d runs:" % num_repeats)
-        print(cumulative_rewards)
+        #print("Cumulative rewards for all %d runs:" % num_repeats)
+        #print(cumulative_rewards)
         return
 
 parser = argparse.ArgumentParser(description='Run missions in Malmo')
@@ -295,10 +295,11 @@ parser.add_argument("--mission_file", help='choose which mission file to run', d
 parser.add_argument("--quest_file", help='choose file to specify quest entities', default='./quest_entities.xml')
 parser.add_argument("--grammar_file", help='choose file to specify logical grammar', default="./quest_grammar.json")
 parser.add_argument("--agent", help='choose which agent to run (TabQAgent, DQNAgent)', default="TabQAgent")
+parser.add_argument("--log", help='whether to record logs for a mission', default="off")
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    mission = GrammarMission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file)
+    mission = GrammarMission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file, log=args.log)
     if args.agent == 'TabQAgent':
         mission.setAgent(TabQAgent)
     elif args.agent == 'DQNAgent':
