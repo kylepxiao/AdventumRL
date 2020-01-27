@@ -5,14 +5,23 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os
 from collections import defaultdict
+from math import floor
 #from collections import deque
 
-def weights_init_uniform(m):
+def FF_weights_init_uniform(m):
     classname = m.__class__.__name__
     # for every Linear layer in a model..
     if classname.find('Linear') != -1:
         # apply a uniform distribution to the weights and a bias=0
         m.weight.data.uniform_(-0.3, 0.3)
+        m.bias.data.fill_(0)
+
+def CNN_weights_init_uniform(m):
+    classname = m.__class__.__name__
+    # for every Linear layer in a model..
+    if classname.find('Linear') != -1:
+        # apply a uniform distribution to the weights and a bias=0
+        m.weight.data.uniform_(-0.01, 0.01)
         m.bias.data.fill_(0)
 
 class NeuralNet(nn.Module):
@@ -84,6 +93,7 @@ class DeepQLearner(object):
         radr = 1, \
         dyna = 10, \
         learning_rate = 0.02, \
+        batch_size = 32, \
         load_path = None, \
         save_path = None, \
         camera = False, \
@@ -100,17 +110,19 @@ class DeepQLearner(object):
         self.rar = rar
         self.radr = radr
         self.dyna = dyna
-        self.max_samples = 500
+        self.max_samples = 512
         self.samples = []
+        self.batch_size = batch_size
         self.camera = camera
         #self.state_actions = defaultdict(int)
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if not camera:
             self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
+            self.model.apply(FF_weights_init_uniform)
         else:
             self.model = CNN(input_size = input_size, num_classes=num_actions).to(self.device)
-        self.model.apply(weights_init_uniform)
+            self.model.apply(CNN_weights_init_uniform)
         # Loss and optimizer
         self.criterion = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -253,27 +265,42 @@ class DeepQLearner(object):
         #for sample in reversed(self.samples):
         #    sample_set[str(sample)] = sample
         #self.samples = list(sample_set.values())
+
         self.samples.sort(key = lambda x: x[3])
 
-        self.model.eval()
-        with torch.no_grad():
-            next_output = self.model(torch.Tensor(s_prime_list).to(self.device))
-            next_output_Q, next_output_action = torch.max(next_output.data, 1)
-            expected_reward = torch.Tensor(r_list).to(self.device) + self.gamma * next_output_Q
+        permutation = torch.randperm(len(s_prime_list))
+        minibatch_losses = []
+        s_tensor = torch.Tensor(s_list).to(self.device)
+        s_prime_tensor = torch.Tensor(s_prime_list).to(self.device)
+        r_tensor = torch.Tensor(r_list).to(self.device)
+        for i in range(0, len(s_prime_list), self.batch_size):
+            indices = permutation[i:i+self.batch_size]
+            print(indices)
+            self.model.eval()
+            with torch.no_grad():
+                next_output = self.model(s_prime_tensor[indices])
+                next_output_Q, next_output_action = torch.max(next_output.data, 1)
+                expected_reward = r_tensor[indices] + self.gamma * next_output_Q
 
-        self.model.train()
-        output = self.model(torch.Tensor(s_list).to(self.device))
-        output_Q, output_action = torch.max(output.data, 1)
-        label = torch.Tensor()
-        label.data = output.clone()
-        for i in range(len(label)):
-            label[i, a_list[i]] = expected_reward[i]
-        loss = self.criterion(output, label)
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-        self.losses.append(loss.item())
-        return loss.item()
+            self.model.train()
+            output = self.model(s_tensor[indices])
+            output_Q, output_action = torch.max(output.data, 1)
+
+            label = torch.Tensor()
+            label.data = output.clone()
+            for i in range(len(label)):
+                k = indices[i].item()
+                label[i, a_list[k]] = expected_reward[i]
+
+            loss = self.criterion(output, label)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            minibatch_losses.append(loss.item())
+
+        avg_loss = sum(minibatch_losses) / len(minibatch_losses)
+        self.losses.append(avg_loss)
+        return avg_loss
 
     def save(self):
         torch.save({

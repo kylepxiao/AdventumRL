@@ -27,7 +27,7 @@
         <!--<DrawItem type="apple" x="3" y="46" z="7"/>-->
         <DrawItem type="diamond" x="1" y="46" z="3"/>
       </DrawingDecorator>
-      <ServerQuitFromTimeUp timeLimitMs="20000"/>
+      <ServerQuitFromTimeUp timeLimitMs="200000"/>
       <ServerQuitWhenAnyAgentFinishes/>
     </ServerHandlers>
   </ServerSection>
