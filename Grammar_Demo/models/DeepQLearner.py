@@ -21,7 +21,7 @@ def CNN_weights_init_uniform(m):
     # for every Linear layer in a model..
     if classname.find('Linear') != -1:
         # apply a uniform distribution to the weights and a bias=0
-        m.weight.data.uniform_(-0.01, 0.01)
+        m.weight.data.uniform_(-0.001, 0.001)
         m.bias.data.fill_(0)
 
 class NeuralNet(nn.Module):
@@ -58,22 +58,22 @@ class NeuralNet(nn.Module):
 class CNN(nn.Module):
     def __init__(self, input_size=31, hidden_size=20, num_classes=2):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
+        self.conv1 = nn.Conv2d(3, 6, 12)
+        self.pool = nn.MaxPool2d(8, 8)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(396864, 120)
+        self.fc1 = nn.Linear(1152, 384)
         self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(120, 84)
+        self.fc2 = nn.Linear(384, 64)
         self.activate2 = nn.LeakyReLU()
         self.dropout2 = nn.Dropout(p=0.05)
-        self.fc3 = nn.Linear(84, num_classes)
+        self.fc3 = nn.Linear(64, num_classes)
 
     def forward(self, x):
         # Convolution
         out = self.pool(F.relu(self.conv1(x)))
         out = self.pool(F.relu(self.conv2(out)))
-        out = out.view(-1, 396864)
+        out = out.view(-1, 1152)
         # Feedforward
         out = self.fc1(out)
         out = self.activate1(out)
@@ -94,6 +94,7 @@ class DeepQLearner(object):
         dyna = 10, \
         learning_rate = 0.02, \
         batch_size = 32, \
+        clip = 1,  \
         load_path = None, \
         save_path = None, \
         camera = False, \
@@ -111,6 +112,7 @@ class DeepQLearner(object):
         self.radr = radr
         self.dyna = dyna
         self.max_samples = 512
+        self.clip = clip
         self.samples = []
         self.batch_size = batch_size
         self.camera = camera
@@ -220,6 +222,7 @@ class DeepQLearner(object):
         loss = self.criterion(output, label)
         self.optimizer.zero_grad()
         loss.backward()
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
         self.optimizer.step()
         self.losses.append(loss.item())
 
@@ -275,7 +278,6 @@ class DeepQLearner(object):
         r_tensor = torch.Tensor(r_list).to(self.device)
         for i in range(0, len(s_prime_list), self.batch_size):
             indices = permutation[i:i+self.batch_size]
-            print(indices)
             self.model.eval()
             with torch.no_grad():
                 next_output = self.model(s_prime_tensor[indices])
@@ -295,6 +297,7 @@ class DeepQLearner(object):
             loss = self.criterion(output, label)
             self.optimizer.zero_grad()
             loss.backward()
+            nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
             self.optimizer.step()
             minibatch_losses.append(loss.item())
 

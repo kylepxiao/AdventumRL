@@ -46,6 +46,8 @@ class CameraDQNAgent(Agent):
         self.learner = DeepQLearner(
             input_size= 860 * 480,
             num_actions=len(self.move_actions) + len(logicState.actions),
+            learning_rate = 0.01,
+            clip = 0.1,
             load_path='cache/camera_dqn.pkl',
             save_path='cache/camera_dqn.pkl',
             camera=True,
@@ -58,7 +60,7 @@ class CameraDQNAgent(Agent):
         tstr = time.strftime("%Y%m%d-%H%M%S")
         self.logFile = 'CameraDQNAgent-' + tstr + '.txt'
         self.lossFile = 'CameraDQNAgent_Losses-' + tstr + '.txt'
-        self.dyna_rate = 1
+        self.dyna_rate = 0.05
 
     def updateGrammar(self, agentHost):
         self.host = agentHost
