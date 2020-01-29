@@ -19,6 +19,7 @@ import sys
 import time
 import torch
 import torch.nn as nn
+import cv2
 if sys.version_info[0] == 2:
     # Workaround for https://github.com/PythonCharmers/python-future/issues/262
     import Tkinter as tk
@@ -46,12 +47,13 @@ class CameraDQNAgent(Agent):
         self.learner = DeepQLearner(
             input_size = 5,
             num_actions=len(self.move_actions) + len(logicState.actions),
-            learning_rate = 0.01,
+            gamma=0.7,
+            learning_rate = 0.005,
             clip = 0.1,
             load_path='cache/camera_dqn.pkl',
             save_path='cache/camera_dqn.pkl',
             camera=True,
-            verbose=False)
+            verbose=True)
 
         self.canvas = None
         self.root = None
@@ -61,6 +63,8 @@ class CameraDQNAgent(Agent):
         self.logFile = 'CameraDQNAgent-' + tstr + '.txt'
         self.lossFile = 'CameraDQNAgent_Losses-' + tstr + '.txt'
         self.dyna_rate = 1
+        self.counter = 0
+        self.saveSnapshots = False
 
     def updateGrammar(self, agentHost):
         self.host = agentHost
@@ -120,8 +124,11 @@ class CameraDQNAgent(Agent):
         raise NotImplementedError
 
     def processFrame(self, pixels, width, height, state):
-        embedding = np.array(pixels).reshape(3, width, height)
-        # TODO: stuff with state
+        embedding = np.array(pixels).reshape(height, width, 3)
+        if self.saveSnapshots:
+            cv2.imwrite('images/' + str(self.counter) + '.jpg', np.flip(embedding, -1))
+            self.counter += 1
+        embedding = np.moveaxis(embedding, -1, 0)
         return (embedding, state)
 
     def act(self, frame, world_state, current_r ):
@@ -229,7 +236,7 @@ class CameraDQNAgent(Agent):
 
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
-            final_s = (np.array(frame.pixels).reshape(3, frame.width, frame.height), self.host.state.getStateEmbedding(includePos=False))
+            final_s = (np.array(frame.pixels).reshape(3, frame.height, frame.width), self.host.state.getStateEmbedding(includePos=False))
             self.learner.query( final_s, current_r )
             #self.learner.query( self.host.state.getStateEmbedding(), current_r )
 

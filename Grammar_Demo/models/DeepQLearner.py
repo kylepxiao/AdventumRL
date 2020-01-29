@@ -118,6 +118,7 @@ class DeepQLearner(object):
         self.samples = []
         self.batch_size = batch_size
         self.camera = camera
+        self.gamma_dropout = 0
         #self.state_actions = defaultdict(int)
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -216,7 +217,10 @@ class DeepQLearner(object):
             if self.verbose: print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
-            expected_reward = r + self.gamma * next_output_Q[0].item()
+            if self.gamma_dropout > rand.random():
+                expected_reward = torch.Tensor([r])
+            else:
+                expected_reward = r + self.gamma * next_output_Q[0].item()
             if self.verbose: print(expected_reward)
 
         self.model.train()
@@ -251,7 +255,7 @@ class DeepQLearner(object):
         #    self.samples.pop()
 
         self.s = s_prime
-        if self.verbose: print("s =", s_prime,"a =",self.a,"r =",r)
+        #if self.verbose: print("s =", s_prime,"a =",self.a,"r =",r)
         return self.a
 
     def run_dyna(self):
@@ -304,12 +308,15 @@ class DeepQLearner(object):
             indices = permutation[i:i+self.batch_size]
             self.model.eval()
             with torch.no_grad():
-                if self.camera:
-                    next_output = self.model(s_prime_tensor[indices], s_prime_state_tensor[indices])
+                if self.gamma_dropout > rand.random():
+                    expected_reward = r_tensor[indices]
                 else:
-                    next_output = self.model(s_prime_tensor[indices])
-                next_output_Q, next_output_action = torch.max(next_output.data, 1)
-                expected_reward = r_tensor[indices] + self.gamma * next_output_Q
+                    if self.camera:
+                        next_output = self.model(s_prime_tensor[indices], s_prime_state_tensor[indices])
+                    else:
+                        next_output = self.model(s_prime_tensor[indices])
+                    next_output_Q, next_output_action = torch.max(next_output.data, 1)
+                    expected_reward = r_tensor[indices] + self.gamma * next_output_Q
 
             self.model.train()
             if self.camera:
