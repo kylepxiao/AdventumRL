@@ -44,7 +44,7 @@ class CameraDQNAgent(Agent):
         self.move_actions = ["movenorth 1", "movesouth 1", "movewest 1", "moveeast 1"]
         (x1, y1, z1), (x2, y2, z2) = logicState.world_bounds.roundPosition()
         self.learner = DeepQLearner(
-            input_size= 860 * 480,
+            input_size = 5,
             num_actions=len(self.move_actions) + len(logicState.actions),
             learning_rate = 0.01,
             clip = 0.1,
@@ -60,7 +60,7 @@ class CameraDQNAgent(Agent):
         tstr = time.strftime("%Y%m%d-%H%M%S")
         self.logFile = 'CameraDQNAgent-' + tstr + '.txt'
         self.lossFile = 'CameraDQNAgent_Losses-' + tstr + '.txt'
-        self.dyna_rate = 0.05
+        self.dyna_rate = 1
 
     def updateGrammar(self, agentHost):
         self.host = agentHost
@@ -86,7 +86,7 @@ class CameraDQNAgent(Agent):
             self.logger.error("Incomplete observation received: %s" % obs_text)
             return 0
 
-        current_s = self.host.state.getStateEmbedding()
+        current_s = self.host.state.getStateEmbedding(includePos=False)
         logicalActions = self.host.state.getApplicableActions()
         actions = self.move_actions + logicalActions
         self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
@@ -95,8 +95,6 @@ class CameraDQNAgent(Agent):
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
             a = self.learner.query(current_s, current_r)
-            if self.dyna_rate > random.random():
-                self.learner.run_dyna()
         else:
             a = self.learner.querysetstate(current_s)
 
@@ -124,7 +122,7 @@ class CameraDQNAgent(Agent):
     def processFrame(self, pixels, width, height, state):
         embedding = np.array(pixels).reshape(3, width, height)
         # TODO: stuff with state
-        return embedding
+        return (embedding, state)
 
     def act(self, frame, world_state, current_r ):
         """take 1 action in response to the current world state"""
@@ -137,7 +135,7 @@ class CameraDQNAgent(Agent):
             self.logger.error("Incomplete observation received: %s" % obs_text)
             return 0
 
-        current_s = self.host.state.getStateEmbedding()
+        current_s = self.host.state.getStateEmbedding(includePos=False)
         logicalActions = self.host.state.getApplicableActions()
         actions = self.move_actions + logicalActions
         self.logger.debug("State: %s (x = %.2f, z = %.2f)" % (current_s, float(obs[u'XPos']), float(obs[u'ZPos'])))
@@ -147,8 +145,6 @@ class CameraDQNAgent(Agent):
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
             a = self.learner.query(current_s, current_r)
-            if self.dyna_rate > random.random():
-                self.learner.run_dyna()
         else:
             a = self.learner.querysetstate(current_s)
 
@@ -233,8 +229,13 @@ class CameraDQNAgent(Agent):
 
         # update Q values
         if self.prev_s is not None and self.prev_a is not None:
-            self.learner.query( np.array(frame.pixels).reshape(3, frame.width, frame.height), current_r )
+            final_s = (np.array(frame.pixels).reshape(3, frame.width, frame.height), self.host.state.getStateEmbedding(includePos=False))
+            self.learner.query( final_s, current_r )
             #self.learner.query( self.host.state.getStateEmbedding(), current_r )
+
+        if self.dyna_rate > random.random():
+            print("Running dyna replay...")
+            self.learner.run_dyna()
 
         #self.drawQ()
         self.cumulative_rewards.append(total_reward)

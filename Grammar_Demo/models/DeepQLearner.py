@@ -56,12 +56,13 @@ class NeuralNet(nn.Module):
         return out
 
 class CNN(nn.Module):
-    def __init__(self, input_size=31, hidden_size=20, num_classes=2):
+    def __init__(self, input_size=31, num_classes=2):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 12)
-        self.pool = nn.MaxPool2d(8, 8)
+        self.conv1 = nn.Conv2d(3, 6, 12, stride=2)
+        self.pool1 = nn.MaxPool2d(8, 8)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(1152, 384)
+        self.pool2 = nn.MaxPool2d(4, 4)
+        self.fc1 = nn.Linear(1152 + input_size, 384)
         self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
         self.fc2 = nn.Linear(384, 64)
@@ -69,11 +70,12 @@ class CNN(nn.Module):
         self.dropout2 = nn.Dropout(p=0.05)
         self.fc3 = nn.Linear(64, num_classes)
 
-    def forward(self, x):
+    def forward(self, x, y):
         # Convolution
-        out = self.pool(F.relu(self.conv1(x)))
-        out = self.pool(F.relu(self.conv2(out)))
-        out = out.view(-1, 1152)
+        out = self.pool1(F.relu(self.conv1(x)))
+        out = self.pool2(F.relu(self.conv2(out)))
+        out = torch.flatten(out, 1)
+        out = torch.cat((out, y), 1)
         # Feedforward
         out = self.fc1(out)
         out = self.activate1(out)
@@ -151,13 +153,16 @@ class DeepQLearner(object):
         self.model.eval()
         with torch.no_grad():
             self.s = s
-            output = self.model(torch.Tensor([s]).to(self.device))
+            if self.camera:
+                output = self.model(torch.Tensor([s[0]]).to(self.device), torch.Tensor([s[1]]).to(self.device))
+            else:
+                output = self.model(torch.Tensor([s]).to(self.device))
             output_Q, output_action = torch.max(output.data, 1)
             action = output_action[0].item()
         if self.rar < rand.random():
             return action
         else:
-            print("RANDOM ACTION")
+            if self.verbose: print("RANDOM ACTION")
             return rand.randint(0, self.num_actions - 1)
             #least_common = min([(self.state_actions[(tuple(self.s), a)], self.s, a) for a in range(self.num_actions)])
             #return least_common[2]
@@ -204,17 +209,21 @@ class DeepQLearner(object):
             self.samples.pop(0)
         self.model.eval()
         with torch.no_grad():
-            next_output = self.model(torch.Tensor([s_prime]).to(self.device))
-            print(next_output)
-            if self.verbose:
-                print(next_output)
+            if self.camera:
+                next_output = self.model(torch.Tensor([s_prime[0]]).to(self.device), torch.Tensor([s_prime[1]]).to(self.device))
+            else:
+                next_output = self.model(torch.Tensor([s_prime]).to(self.device))
+            if self.verbose: print(next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
             expected_reward = r + self.gamma * next_output_Q[0].item()
-            print(expected_reward)
+            if self.verbose: print(expected_reward)
 
         self.model.train()
-        output = self.model(torch.Tensor([self.s]).to(self.device))
+        if self.camera:
+            output = self.model(torch.Tensor([self.s[0]]).to(self.device), torch.Tensor([self.s[1]]).to(self.device))
+        else:
+            output = self.model(torch.Tensor([self.s]).to(self.device))
         output_Q, output_action = torch.max(output.data, 1)
         label = torch.Tensor()
         label.data = output.clone()
@@ -229,7 +238,7 @@ class DeepQLearner(object):
         if self.rar < rand.random():
             self.a = next_action
         else:
-            print("RANDOM ACTION")
+            if self.verbose: print("RANDOM ACTION")
             self.a = rand.randint(0, self.num_actions - 1)
             #least_common = min([(self.state_actions[(tuple(self.s), a)], self.s, a) for a in range(self.num_actions)])
             #self.a = least_common[2]
@@ -252,18 +261,30 @@ class DeepQLearner(object):
         """
         if len(self.samples) == 0:
             return
+
         s_list = []
         a_list = []
         s_prime_list = []
         r_list = []
+        if self.camera:
+            s_state_list = []
+            s_prime_state_list = []
         #rand.shuffle(self.samples)
         curr_samples = rand.sample(self.samples, len(self.samples))
         for sample in curr_samples:
             [s, a, s_prime, r] = sample
-            s_list.append(s)
-            a_list.append(a)
-            s_prime_list.append(s_prime)
-            r_list.append(r)
+            if self.camera:
+                s_list.append(s[0])
+                a_list.append(a)
+                s_prime_list.append(s_prime[0])
+                r_list.append(r)
+                s_state_list.append(s[1])
+                s_prime_state_list.append(s_prime[1])
+            else:
+                s_list.append(s)
+                a_list.append(a)
+                s_prime_list.append(s_prime)
+                r_list.append(r)
         #sample_set = {}
         #for sample in reversed(self.samples):
         #    sample_set[str(sample)] = sample
@@ -276,16 +297,25 @@ class DeepQLearner(object):
         s_tensor = torch.Tensor(s_list).to(self.device)
         s_prime_tensor = torch.Tensor(s_prime_list).to(self.device)
         r_tensor = torch.Tensor(r_list).to(self.device)
+        if self.camera:
+            s_state_tensor =torch.Tensor(s_state_list).to(self.device)
+            s_prime_state_tensor =torch.Tensor(s_prime_state_list).to(self.device)
         for i in range(0, len(s_prime_list), self.batch_size):
             indices = permutation[i:i+self.batch_size]
             self.model.eval()
             with torch.no_grad():
-                next_output = self.model(s_prime_tensor[indices])
+                if self.camera:
+                    next_output = self.model(s_prime_tensor[indices], s_prime_state_tensor[indices])
+                else:
+                    next_output = self.model(s_prime_tensor[indices])
                 next_output_Q, next_output_action = torch.max(next_output.data, 1)
                 expected_reward = r_tensor[indices] + self.gamma * next_output_Q
 
             self.model.train()
-            output = self.model(s_tensor[indices])
+            if self.camera:
+                output = self.model(s_tensor[indices], s_state_tensor[indices])
+            else:
+                output = self.model(s_tensor[indices])
             output_Q, output_action = torch.max(output.data, 1)
 
             label = torch.Tensor()

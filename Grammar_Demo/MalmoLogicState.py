@@ -90,20 +90,24 @@ class MalmoLogicState(State):
         triggerstr = ''.join(map(str, triggerflags))
         return "%d:%d|%s" % (int(self.entities[entity].x), int(self.entities[entity].z), actionstr + ":" + triggerstr)
 
-    def getStateEmbedding(self, entity='player'):
+    def getStateEmbedding(self, entity='player', includePos=True):
         if self.world_bounds is None:
             actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
             triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
             xValue = 1 / (1 + exp(float(self.entities[entity].x)))
             zValue = 1 / (1 + exp(float(self.entities[entity].z)))
             return [xValue, zValue] + actionflags + triggerflags
-        else:
+        elif includePos:
             (x1, y1, z1), (x2, y2, z2) = self.world_bounds.roundPosition()
             actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
             triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
             xValue = [1 if round(self.entities[entity].x) == i else 0 for i in range(x1, x2+1, 1)]
             zValue = [1 if round(self.entities[entity].z) == i else 0 for i in range(z1, z2+1, 1)]
             return xValue + zValue + actionflags + triggerflags
+        else:
+            actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
+            triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
+            return actionflags + triggerflags
 
     def getRelationalKnowledgeGraph(self):
         graph = []
