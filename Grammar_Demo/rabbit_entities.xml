@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Quest xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Grid name="coalBoundary">
+      <min x="-99" y="-99" z="3"/>
+      <max x="1" y="99" z="3"/>
+    </Grid>
+    <Grid name="plankBoundary1">
+      <min x="2" y="-99" z="9"/>
+      <max x="2" y="99" z="99"/>
+    </Grid>
+    <Grid name="plankBoundary2">
+      <min x="2" y="-99" z="9"/>
+      <max x="2" y="99" z="99"/>
+    </Grid>
+    <Grid name="plankBoundary3">
+      <min x="2" y="-99" z="9"/>
+      <max x="2" y="99" z="99"/>
+    </Grid>
+    <Grid name="rabbitBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="carotBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="potatoBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="mushroomBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="mushroomBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="craftingBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="smeltingBoundary">
+      <min x="4"  y="-99" z="6"/>
+      <max x="99" y="99" z="99"/>
+    </Grid>
+    <Grid name="world_bounds">
+      <min x="-2"  y="-99" z="-2"/>
+      <max x="7" y="99" z="13"/>
+    </Grid>
+</Quest>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <About>
+        <Summary>Test</Summary>
+    </About>
+    <ServerSection>
+        <ServerHandlers>
+            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1" />
+            <DrawingDecorator>
+                <DrawCuboid x1="-50" y1="227" z1="-50" x2="50" y2="227" z2="50" type="air" /> <!-- to clear old items-->
+                <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="monster_egg" variant="chiseled_brick" />
+                <DrawCuboid x1="-3" y1="226" z1="-3" x2="3" y2="226" z2="3" type="dirt" />
+                <DrawCuboid x1="-3" y1="227" z1="-3" x2="3" y2="227" z2="3" type="red_flower" variant="blue_orchid" /> <!-- yes, blue orchids are indeed a type of red flower. -->
+                <DrawItem x="10" y="228" z="5" type="red_flower" variant="white_tulip" />
+                <DrawItem x="7" y="228" z="-2" type="coal" />
+                <DrawItem x="8" y="228" z="-10" type="planks" variant="spruce" />
+                <DrawItem x="-2" y="228" z="7" type="planks" variant="spruce" />
+                <DrawItem x="-2" y="228" z="-9" type="planks" variant="spruce" />
+                <DrawItem x="10" y="228" z="-4" type="rabbit" />
+                <DrawItem x="-8" y="228" z="0" type="carrot" />
+                <DrawItem x="-8" y="228" z="-4" type="potato" />
+                <DrawItem x="-6" y="228" z="8" type="brown_mushroom" />
+            </DrawingDecorator>
+            <ServerQuitFromTimeUp timeLimitMs="150000" />
+            <ServerQuitWhenAnyAgentFinishes />
+        </ServerHandlers>
+    </ServerSection>
+    <AgentSection mode="Survival">
+        <Name>Chie</Name>
+        <AgentStart>
+            <Placement x="0.5" y="227.0" z="0.5" />
+            <Inventory></Inventory>
+        </AgentStart>
+        <AgentHandlers>
+            <RewardForCollectingItem>
+                <Item reward="10" type="planks" variant="spruce" />
+                <Item reward="100" type="cooked_rabbit carrot baked_potato brown_mushroom" />
+                <Item reward="500" type="bowl" />
+                <Item reward="1000" type="rabbit_stew" />
+            </RewardForCollectingItem>
+            <RewardForDiscardingItem>
+                <Item reward="-2" type="planks" />
+                <Item reward="-6" type="cooked_rabbit carrot baked_potato brown_mushroom" />
+            </RewardForDiscardingItem>
+            <ContinuousMovementCommands turnSpeedDegs="480" />
+            <SimpleCraftCommands />
+            <InventoryCommands />
+            <ObservationFromSubgoalPositionList>
+                <Point x="10" y="227" z="5" tolerance="1" description="ingredient" />
+                <Point x="7" y="227" z="-2" tolerance="1" description="ingredient" />
+                <Point x="8" y="227" z="-10" tolerance="1" description="ingredient" />
+                <Point x="-2" y="227" z="7" tolerance="1" description="ingredient" />
+                <Point x="-2" y="227" z="-9" tolerance="1" description="ingredient" />
+                <Point x="10" y="227" z="-4" tolerance="1" description="ingredient" />
+                <Point x="-8" y="227" z="0" tolerance="1" description="ingredient" />
+                <Point x="-8" y="227" z="-4" tolerance="1" description="ingredient" />
+                <Point x="-6" y="227" z="8" tolerance="1" description="ingredient" />
+            </ObservationFromSubgoalPositionList>
+            <ObservationFromFullInventory />
+            <AgentQuitFromCollectingItem>
+                <Item type="rabbit_stew" description="Supper's Up!!" />
+            </AgentQuitFromCollectingItem>
+        </AgentHandlers>
+    </AgentSection>
+</Mission>

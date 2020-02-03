@@ -1,0 +1,418 @@
+{
+    "Variables": {
+        "world": ["world"],
+        "agent": ["player"],
+        "inventory": ["inventory", "current"],
+        "unlockable": ["door"],
+        "boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary","exitBoundary"],
+        "item": ["planks1", "planks2", "planks3", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
+    },
+    "Items": {
+        "item": ["planks", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
+    },
+    "DefaultFacts": [
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks1", "planks2", "planks3", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"], "inventory": ["inventory"]},
+                {"world": ["world"]}
+            ]
+        },
+        {
+            "name": "at",
+            "vars": [
+                {"agent": ["player"]},
+                {"world": ["world"]}
+            ]
+        },
+        {
+            "name": "locked",
+            "vars": [
+                {"unlockable": ["door"]}
+            ]
+        },
+        {
+            "name": "notreached",
+            "vars": [
+                {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary", "exitBoundary"]}
+            ]
+        },
+        {
+            "name": "by",
+            "vars": [
+                {"agent": ["player"]},
+                {"unlockable": ["door"]}
+            ]
+        }
+    ],
+    "Actions": [
+        {
+            "name": "grab",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "unlock",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbitStew"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "command": "discardCurrentItem",
+            "reward": 75
+        },
+        {
+            "name": "cookPotato",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["potato", "coal"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["bakedPotato"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft baked_potato",
+            "reward": 75
+        },
+        {
+            "name": "cookRabbit",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbit", "coal"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["cookedRabbit"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft cooked_rabbit",
+            "reward": 75
+        },
+        {
+            "name": "makeBowl",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["planks1, planks2, planks3"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["bowl"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft bowl",
+            "reward": 75
+        },
+        {
+            "name": "cookStew",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["bakedPotato", "cookedRabbit", "carrot", "mushroom", "bowl"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbitStew"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft rabbit_stew",
+            "reward": 100
+        },
+        {
+            "name": "goal",
+            "precondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                }
+            ],
+            "command": "quit",
+            "reward": 200
+        }
+        
+    ],
+    "Goal": [
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks1"]},
+                {"boundary": ["plankBoundary1"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks2"]},
+                {"boundary": ["plankBoundary2"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks3"]},
+                {"boundary": ["plankBoundary3"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["potato"]},
+                {"boundary": ["potatoBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["rabbit"]},
+                {"boundary": ["rabbitBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["carrot"]},
+                {"boundary": ["carrotBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["coal"]},
+                {"boundary": ["coalBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]},
+                {"inventory": ["inventory"]}
+            ],
+            "negate": false
+        }
+    ],
+    "Triggers": [
+        {
+            "name": "notreached",
+            "vars": [
+                {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary", "craftingBoundary", "smeltingBoundary", "exitBoundary"]}
+            ]
+        },
+        {
+            "name": "locked",
+            "vars": [
+                {"unlockable": ["door"]}
+            ]
+        }
+    ],
+    "Predicates": [
+        {
+            "name": "in",
+            "vars": [
+                {"P": ["P"]},
+                {"R": ["R"]}
+            ]
+        }
+    ],
+    "Rules": [
+        {
+            "name": "unlock",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["P"]},
+                        {"boundary": ["B"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["I"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["U"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["U"]}
+                    ]
+                }
+            ]
+        }
+    ]
+}
