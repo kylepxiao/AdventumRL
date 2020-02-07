@@ -4,7 +4,7 @@
         "agent": ["player"],
         "inventory": ["inventory", "current"],
         "unlockable": ["door"],
-        "boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary","exitBoundary"],
+        "boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"],
         "item": ["planks1", "planks2", "planks3", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
     },
     "Items": {
@@ -34,7 +34,7 @@
         {
             "name": "notreached",
             "vars": [
-                {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary", "exitBoundary"]}
+                {"boundary":  ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"]}
             ]
         },
         {
@@ -52,14 +52,14 @@
                 {
                     "name": "notreached",
                     "vars": [
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
                     ]
                 }
             ],
@@ -67,14 +67,14 @@
                 {
                     "name": "reached",
                     "vars": [
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary"]}
+                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
                     ]
                 }
             ],
@@ -344,7 +344,15 @@
             "name": "in",
             "vars": [
                 {"item": ["coal"]},
-                {"boundary": ["coalBoundary"]}
+                {"boundary": ["coalBoundary1"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["coal"]},
+                {"boundary": ["coalBoundary2"]}
             ],
             "negate": false
         },
@@ -361,7 +369,7 @@
         {
             "name": "notreached",
             "vars": [
-                {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary", "craftingBoundary", "smeltingBoundary", "exitBoundary"]}
+                {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2", "exitBoundary"]}
             ]
         },
         {

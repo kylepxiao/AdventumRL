@@ -8,18 +8,20 @@
             <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1" />
             <DrawingDecorator>
                 <DrawCuboid x1="-50" y1="227" z1="-50" x2="50" y2="227" z2="50" type="air" /> <!-- to clear old items-->
-                <DrawCuboid x1="-50" y1="226" z1="-50" x2="50" y2="226" z2="50" type="monster_egg" variant="chiseled_brick" />
-                <DrawCuboid x1="-3" y1="226" z1="-3" x2="3" y2="226" z2="3" type="dirt" />
-                <DrawCuboid x1="-3" y1="227" z1="-3" x2="3" y2="227" z2="3" type="red_flower" variant="blue_orchid" /> <!-- yes, blue orchids are indeed a type of red flower. -->
-                <DrawItem x="10" y="228" z="5" type="red_flower" variant="white_tulip" />
-                <DrawItem x="7" y="228" z="-2" type="coal" />
-                <DrawItem x="8" y="228" z="-10" type="planks" variant="spruce" />
-                <DrawItem x="-2" y="228" z="7" type="planks" variant="spruce" />
-                <DrawItem x="-2" y="228" z="-9" type="planks" variant="spruce" />
-                <DrawItem x="10" y="228" z="-4" type="rabbit" />
-                <DrawItem x="-8" y="228" z="0" type="carrot" />
-                <DrawItem x="-8" y="228" z="-4" type="potato" />
-                <DrawItem x="-6" y="228" z="8" type="brown_mushroom" />
+                <DrawCuboid x1="-50" y1="223" z1="-50" x2="50" y2="226" z2="50" type="lava" />           <!-- lava floor -->
+                <DrawCuboid x1="-6" y1="226" z1="-6" x2="6" y2="226" z2="6" type="monster_egg" variant="chiseled_brick" />
+                <DrawCuboid x1="-2" y1="226" z1="-2" x2="2" y2="226" z2="2" type="grass" />
+                <DrawCuboid x1="-2" y1="227" z1="-2" x2="2" y2="227" z2="" type="red_flower" variant="blue_orchid" /> <!-- yes, blue orchids are indeed a type of red flower. -->
+                <DrawBlock x="4"  y="226" z="4" type="diamond_block" />
+                <DrawItem x="6" y="228" z="-2" type="coal" />
+                <DrawItem x="3" y="228" z="-2" type="coal" />
+                <DrawItem x="6" y="228" z="-5" type="planks" variant="spruce" />
+                <DrawItem x="-2" y="228" z="5" type="planks" variant="spruce" />
+                <DrawItem x="-2" y="228" z="-5" type="planks" variant="spruce" />
+                <DrawItem x="6" y="228" z="-4" type="rabbit" />
+                <DrawItem x="-3" y="228" z="0" type="carrot" />
+                <DrawItem x="-4" y="228" z="-4" type="potato" />
+                <DrawItem x="-6" y="228" z="3" type="brown_mushroom" />
             </DrawingDecorator>
             <ServerQuitFromTimeUp timeLimitMs="150000" />
             <ServerQuitWhenAnyAgentFinishes />
