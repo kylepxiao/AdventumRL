@@ -264,7 +264,7 @@ class TabQAgent(Agent):
 
         return total_reward
 
-    def drawQ(self, curr_x=None, curr_y=None ):
+    def drawQ(self, curr_x=None, curr_y=None):
         scale = 40
         world_x = 6
         world_y = 14
@@ -282,7 +282,7 @@ class TabQAgent(Agent):
         # (NSWE to match action order)
         min_value = -20
         max_value = 20
-        suffixes = ["000:01", "000:11", "000:10", "000:00"]
+        suffixes = [s.split('|', 1)[-1] for s in self.q_table.keys()]
         for x in range(world_x):
             for y in range(world_y):
                 s = "%d:%d|" % (x,y)

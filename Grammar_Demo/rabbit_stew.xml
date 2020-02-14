@@ -37,7 +37,6 @@
         <Name>Chie</Name>
         <AgentStart>
             <Placement x="0.5" y="227.0" z="0.5" />
-            <Inventory></Inventory>
         </AgentStart>
         <AgentHandlers>
             <RewardForCollectingItem>
@@ -46,6 +45,7 @@
                 <Item reward="500" type="bowl" />
                 <Item reward="1000" type="rabbit_stew" />
             </RewardForCollectingItem>
+            <RewardForSendingCommand reward="-1" />
             <RewardForDiscardingItem>
                 <Item reward="-2" type="planks" />
                 <Item reward="-6" type="cooked_rabbit carrot baked_potato brown_mushroom" />
@@ -53,9 +53,11 @@
             <RewardForTouchingBlockType>
                 <Block reward="-100.0" type="lava" behaviour="onceOnly"/>
             </RewardForTouchingBlockType>
-            <ContinuousMovementCommands turnSpeedDegs="480" />
+            <!--<ContinuousMovementCommands turnSpeedDegs="480" />-->
+            <DiscreteMovementCommands/>
             <SimpleCraftCommands />
             <InventoryCommands />
+            <ObservationFromFullStats/>
             <ObservationFromSubgoalPositionList>
                 <Point x="10" y="227" z="5" tolerance="1" description="ingredient" />
                 <Point x="7" y="227" z="-2" tolerance="1" description="ingredient" />
