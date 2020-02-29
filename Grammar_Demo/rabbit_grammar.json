@@ -5,16 +5,16 @@
         "inventory": ["inventory", "current"],
         "unlockable": ["door"],
         "boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"],
-        "item": ["planks1", "planks2", "planks3", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
+        "item": ["planks1", "planks2", "planks3", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
     },
     "Items": {
-        "item": ["planks", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
+        "item": ["planks", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
     },
     "DefaultFacts": [
         {
             "name": "in",
             "vars": [
-                {"item": ["planks1", "planks2", "planks3", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"], "inventory": ["inventory"]},
+                {"item": ["planks1", "planks2", "planks3", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"], "inventory": ["inventory"]},
                 {"world": ["world"]}
             ]
         },
@@ -47,19 +47,19 @@
     ],
     "Actions": [
         {
-            "name": "grab",
+            "name": "grabPlank1", 
             "precondition": [
                 {
                     "name": "notreached",
                     "vars": [
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
+                        {"boundary": ["plankBoundary1"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
+                        {"boundary": ["plankBoundary1"]}
                     ]
                 }
             ],
@@ -67,14 +67,259 @@
                 {
                     "name": "reached",
                     "vars": [
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
+                        {"boundary": ["plankBoundary1"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2"]}
+                        {"boundary": ["plankBoundary1"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabPlank2", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["plankBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["plankBoundary2"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["plankBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["plankBoundary2"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabPlank3", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["plankBoundary3"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["plankBoundary3"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["plankBoundary3"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["plankBoundary3"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabPotato", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabRabbit", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabCarrot", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabCoal1", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["coalBoundary1"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary1"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["coalBoundary1"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary1"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabCoal2", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["coalBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary2"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["coalBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary2"]}
                     ]
                 }
             ],
@@ -122,21 +367,8 @@
                 {
                     "name": "in",
                     "vars": [
-                        {"agent": ["player"]},
-                        {"boundary": ["exitBoundary"]}
-                    ]
-                },
-                {
-                    "name": "in",
-                    "vars": [
-                        {"item": ["potato", "coal"]},
+                        {"item": ["potato", "coal1"]},
                         {"inventory": ["inventory"]}
-                    ]
-                },
-                {
-                    "name": "locked",
-                    "vars": [
-                        {"unlockable": ["door"]}
                     ]
                 }
             ],
@@ -158,21 +390,8 @@
                 {
                     "name": "in",
                     "vars": [
-                        {"agent": ["player"]},
-                        {"boundary": ["exitBoundary"]}
-                    ]
-                },
-                {
-                    "name": "in",
-                    "vars": [
-                        {"item": ["rabbit", "coal"]},
+                        {"item": ["rabbit", "coal2"]},
                         {"inventory": ["inventory"]}
-                    ]
-                },
-                {
-                    "name": "locked",
-                    "vars": [
-                        {"unlockable": ["door"]}
                     ]
                 }
             ],
@@ -194,21 +413,8 @@
                 {
                     "name": "in",
                     "vars": [
-                        {"agent": ["player"]},
-                        {"boundary": ["exitBoundary"]}
-                    ]
-                },
-                {
-                    "name": "in",
-                    "vars": [
                         {"item": ["planks1, planks2, planks3"]},
                         {"inventory": ["inventory"]}
-                    ]
-                },
-                {
-                    "name": "locked",
-                    "vars": [
-                        {"unlockable": ["door"]}
                     ]
                 }
             ],
@@ -230,21 +436,8 @@
                 {
                     "name": "in",
                     "vars": [
-                        {"agent": ["player"]},
-                        {"boundary": ["exitBoundary"]}
-                    ]
-                },
-                {
-                    "name": "in",
-                    "vars": [
                         {"item": ["bakedPotato", "cookedRabbit", "carrot", "mushroom", "bowl"]},
                         {"inventory": ["inventory"]}
-                    ]
-                },
-                {
-                    "name": "locked",
-                    "vars": [
-                        {"unlockable": ["door"]}
                     ]
                 }
             ],
@@ -343,7 +536,7 @@
         {
             "name": "in",
             "vars": [
-                {"item": ["coal"]},
+                {"item": ["coal1"]},
                 {"boundary": ["coalBoundary1"]}
             ],
             "negate": false
@@ -351,7 +544,7 @@
         {
             "name": "in",
             "vars": [
-                {"item": ["coal"]},
+                {"item": ["coal2"]},
                 {"boundary": ["coalBoundary2"]}
             ],
             "negate": false
@@ -359,7 +552,7 @@
         {
             "name": "in",
             "vars": [
-                {"item": ["planks", "coal", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]},
+                {"item": ["planks", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]},
                 {"inventory": ["inventory"]}
             ],
             "negate": false
@@ -390,37 +583,6 @@
     ],
     "Rules": [
         {
-            "name": "unlock",
-            "precondition": [
-                {
-                    "name": "in",
-                    "vars": [
-                        {"agent": ["P"]},
-                        {"boundary": ["B"]}
-                    ]
-                },
-                {
-                    "name": "in",
-                    "vars": [
-                        {"item": ["I"]},
-                        {"inventory": ["inventory"]}
-                    ]
-                },
-                {
-                    "name": "locked",
-                    "vars": [
-                        {"unlockable": ["U"]}
-                    ]
-                }
-            ],
-            "postcondition": [
-                {
-                    "name": "unlocked",
-                    "vars": [
-                        {"unlockable": ["U"]}
-                    ]
-                }
-            ]
         }
     ]
 }
