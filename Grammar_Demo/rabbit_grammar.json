@@ -73,6 +73,13 @@
                 {
                     "name": "in",
                     "vars": [
+                        {"item": ["planks1"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
                         {"agent": ["player"]},
                         {"boundary": ["plankBoundary1"]}
                     ]
@@ -103,6 +110,13 @@
                     "name": "reached",
                     "vars": [
                         {"boundary": ["plankBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["planks2"]},
+                        {"inventory": ["inventory"]}
                     ]
                 },
                 {
@@ -143,6 +157,13 @@
                 {
                     "name": "in",
                     "vars": [
+                        {"item": ["planks3"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
                         {"agent": ["player"]},
                         {"boundary": ["plankBoundary3"]}
                     ]
@@ -173,6 +194,13 @@
                     "name": "reached",
                     "vars": [
                         {"boundary": ["potatoBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["potato"]},
+                        {"inventory": ["inventory"]}
                     ]
                 },
                 {
@@ -213,6 +241,13 @@
                 {
                     "name": "in",
                     "vars": [
+                        {"item": ["rabbit"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
                         {"agent": ["player"]},
                         {"boundary": ["rabbitBoundary"]}
                     ]
@@ -243,6 +278,13 @@
                     "name": "reached",
                     "vars": [
                         {"boundary": ["carrotBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["carrot"]},
+                        {"inventory": ["inventory"]}
                     ]
                 },
                 {
@@ -283,6 +325,13 @@
                 {
                     "name": "in",
                     "vars": [
+                        {"item": ["coal1"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
                         {"agent": ["player"]},
                         {"boundary": ["coalBoundary1"]}
                     ]
@@ -313,6 +362,13 @@
                     "name": "reached",
                     "vars": [
                         {"boundary": ["coalBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["coal2"]},
+                        {"inventory": ["inventory"]}
                     ]
                 },
                 {
