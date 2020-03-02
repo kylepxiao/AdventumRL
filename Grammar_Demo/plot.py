@@ -6,7 +6,86 @@ y = []
 axes = plt.gca()
 axes.set_ylim([-200,350])
 
-with open('logs/CameraDQNAgent-20200128-200911.txt','r') as csvfile:
+with open('logs/CameraDQNAgent-20200228-160113.txt','r') as csvfile:
+    plots = csvfile.readlines()
+    for i, row in enumerate(plots):
+        x.append(i)
+        y.append(float(row))
+
+plt.plot(x[:5000],y[:5000], label='Rewards')
+plt.xlabel('Iterations')
+plt.ylabel('Cumulative Rewards Per Run')
+plt.title('Camera DQN Training on Sample Mission with Triggers')
+plt.legend()
+plt.show()
+
+x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])
+
+with open('logs/CameraDQNAgent-20200225-182642.txt','r') as csvfile:
+    plots = csvfile.readlines()
+    for i, row in enumerate(plots):
+        x.append(i)
+        y.append(float(row))
+
+plt.plot(x[:5000],y[:5000], label='Rewards')
+plt.xlabel('Iterations')
+plt.ylabel('Cumulative Rewards Per Run')
+plt.title('Camera DQN Training on Sample Mission with Triggers')
+plt.legend()
+plt.show()
+
+x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])
+
+with open('logs/DoubleDQNAgent-20200224-154925.txt','r') as csvfile:
+    plots = csvfile.readlines()
+    for i, row in enumerate(plots):
+        x.append(i)
+        y.append(float(row))
+
+plt.plot(x[:5000],y[:5000], label='Rewards')
+plt.xlabel('Iterations')
+plt.ylabel('Cumulative Rewards Per Run')
+plt.title('Double DQN Training on Sample Mission with Triggers')
+plt.legend()
+plt.show()
+
+x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])
+
+with open('logs/CameraDQNAgent-20200218-205427.txt','r') as csvfile:
+    plots = csvfile.readlines()
+    for i, row in enumerate(plots):
+        x.append(i)
+        y.append(float(row))
+
+plt.plot(x[:5000],y[:5000], label='Rewards')
+plt.xlabel('Iterations')
+plt.ylabel('Cumulative Rewards Per Run')
+plt.title('Original Camera-based CNN + DQN Training on Sample Mission with Triggers')
+plt.legend()
+plt.show()
+
+x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])
+
+x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])
+
+
+# bad run
+"""with open('logs/CameraDQNAgent-20200131-140223.txt','r') as csvfile:
     plots = csvfile.readlines()
     for i, row in enumerate(plots):
         x.append(i)
@@ -18,6 +97,29 @@ plt.ylabel('Cumulative Rewards Per Run')
 plt.title('Camera-based CNN + DQN Training on Sample Mission with Triggers')
 plt.legend()
 plt.show()
+
+x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])"""
+
+"""x = []
+y = []
+axes = plt.gca()
+axes.set_ylim([-200,350])
+
+with open('logs/CameraDQNAgent-20200128-200911.txt','r') as csvfile:
+    plots = csvfile.readlines()
+    for i, row in enumerate(plots):
+        x.append(i)
+        y.append(float(row))
+
+plt.plot(x[:5000],y[:5000], label='Rewards')
+plt.xlabel('Iterations')
+plt.ylabel('Cumulative Rewards Per Run')
+plt.title('Camera-based CNN + DQN Training on Sample Mission with Triggers')
+plt.legend()
+plt.show()"""
 
 x = []
 y = []

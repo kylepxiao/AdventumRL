@@ -60,9 +60,13 @@
           <Block type="lava" />
           <!--<Block type="lapis_block" />-->
       </AgentQuitFromTouchingBlockType>
-      <VideoProducer>
+      <!--<VideoProducer>
         <Width>860</Width>
         <Height>480</Height>
+      </VideoProducer>-->
+      <VideoProducer>
+        <Width>172</Width>
+        <Height>96</Height>
       </VideoProducer>
     </AgentHandlers>
   </AgentSection>

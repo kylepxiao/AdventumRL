@@ -10,6 +10,7 @@ from MalmoLogicState import *
 from constants import *
 from models.Agent import Agent
 from PIL import Image
+#from imagehash import phash
 import MalmoPython
 import json
 import logging
@@ -47,9 +48,10 @@ class CameraDQNAgent(Agent):
         self.learner = DeepQLearner(
             input_size = 5,
             num_actions=len(self.move_actions) + len(logicState.actions),
-            gamma=0.7,
-            learning_rate = 0.005,
-            clip = 0.1,
+            gamma=0.8,
+            rar=0.1,
+            learning_rate = 0.0005,
+            clip = 0.2,
             load_path='cache/camera_dqn.pkl',
             save_path='cache/camera_dqn.pkl',
             camera=True,
@@ -64,7 +66,7 @@ class CameraDQNAgent(Agent):
         self.lossFile = 'CameraDQNAgent_Losses-' + tstr + '.txt'
         self.dyna_rate = 1
         self.counter = 0
-        self.saveSnapshots = False
+        self.saveSnapshots = True
 
     def updateGrammar(self, agentHost):
         self.host = agentHost
@@ -126,7 +128,8 @@ class CameraDQNAgent(Agent):
     def processFrame(self, pixels, width, height, state):
         embedding = np.array(pixels).reshape(height, width, 3)
         if self.saveSnapshots:
-            cv2.imwrite('images/' + str(self.counter) + '.jpg', np.flip(embedding, -1))
+            #hash = phash(Image.fromarray(embedding))
+            cv2.imwrite('images/' + str(hash) + '-' + str(self.counter) + '.jpg', np.flip(embedding, -1))
             self.counter += 1
         embedding = np.moveaxis(embedding, -1, 0)
         return (embedding, state)
@@ -235,9 +238,11 @@ class CameraDQNAgent(Agent):
         total_reward += current_r
 
         # update Q values
-        if self.prev_s is not None and self.prev_a is not None:
-            final_s = (np.array(frame.pixels).reshape(3, frame.height, frame.width), self.host.state.getStateEmbedding(includePos=False))
-            self.learner.query( final_s, current_r )
+        final_s = (np.array(frame.pixels).reshape(3, frame.height, frame.width), self.host.state.getStateEmbedding(includePos=False))
+        self.learner.query( final_s, current_r )
+        #if self.prev_s is not None and self.prev_a is not None:
+        #    final_s = (np.array(frame.pixels).reshape(3, frame.height, frame.width), self.host.state.getStateEmbedding(includePos=False))
+        #    self.learner.query( final_s, current_r )
             #self.learner.query( self.host.state.getStateEmbedding(), current_r )
 
         if self.dyna_rate > random.random():

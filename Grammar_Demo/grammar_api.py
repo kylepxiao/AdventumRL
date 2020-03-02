@@ -12,6 +12,7 @@ from models.Agent import Agent
 from models.TabQAgent import TabQAgent
 from models.DQNAgent import DQNAgent
 from models.CameraDQNAgent import CameraDQNAgent
+from models.DoubleDQNAgent import DoubleDQNAgent
 import MalmoPython
 import json
 import logging
@@ -224,7 +225,7 @@ class GrammarMission:
     '''
     @summary: Runs the current mission
     '''
-    def run_mission(self, num_repeats=100000): # Running the mission (taken from grammar_demo.py)
+    def run_mission(self, num_repeats=5000): # Running the mission (taken from grammar_demo.py)
         # -- set up the mission -- #
         with open(self.mission_file, 'r') as f:
             print("Loading mission from %s" % self.mission_file)
@@ -307,6 +308,8 @@ if __name__ == "__main__":
         mission.setAgent(DQNAgent)
     elif args.agent == 'CameraDQNAgent':
         mission.setAgent(CameraDQNAgent)
+    elif args.agent == 'DoubleDQNAgent':
+        mission.setAgent(DoubleDQNAgent)
     else:
         print("unrecognized agent")
     mission.run_mission()

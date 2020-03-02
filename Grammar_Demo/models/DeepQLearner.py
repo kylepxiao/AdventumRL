@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os
 from collections import defaultdict
-from math import floor
+from math import exp, floor
 #from collections import deque
 
 def FF_weights_init_uniform(m):
@@ -21,7 +21,7 @@ def CNN_weights_init_uniform(m):
     # for every Linear layer in a model..
     if classname.find('Linear') != -1:
         # apply a uniform distribution to the weights and a bias=0
-        m.weight.data.uniform_(-0.001, 0.001)
+        m.weight.data.uniform_(0, 0.003)
         m.bias.data.fill_(0)
 
 class NeuralNet(nn.Module):
@@ -58,30 +58,24 @@ class NeuralNet(nn.Module):
 class CNN(nn.Module):
     def __init__(self, input_size=31, num_classes=2):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 12, stride=2)
-        self.pool1 = nn.MaxPool2d(8, 8)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.pool2 = nn.MaxPool2d(4, 4)
-        self.fc1 = nn.Linear(1152 + input_size, 384)
+        self.conv1 = nn.Conv2d(3, 6, 5, stride=2)
+        self.pool1 = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5, stride=2)
+        self.pool2 = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(720 + input_size, 128)
         self.activate1 = nn.LeakyReLU()
-        self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(384, 64)
-        self.activate2 = nn.LeakyReLU()
-        self.dropout2 = nn.Dropout(p=0.05)
-        self.fc3 = nn.Linear(64, num_classes)
+        self.fc2 = nn.Linear(128, num_classes)
 
     def forward(self, x, y):
         # Convolution
-        out = self.pool1(F.relu(self.conv1(x)))
-        out = self.pool2(F.relu(self.conv2(out)))
+        out = self.pool1(F.leaky_relu(self.conv1(x)))
+        out = self.pool2(F.leaky_relu(self.conv2(out)))
         out = torch.flatten(out, 1)
         out = torch.cat((out, y), 1)
         # Feedforward
         out = self.fc1(out)
         out = self.activate1(out)
         out = self.fc2(out)
-        out = self.activate2(out)
-        out = self.fc3(out)
         return out
 
 class DeepQLearner(object):
@@ -94,7 +88,7 @@ class DeepQLearner(object):
         rar = 0.2, \
         radr = 1, \
         dyna = 10, \
-        learning_rate = 0.02, \
+        learning_rate = 0.002, \
         batch_size = 32, \
         clip = 1,  \
         load_path = None, \
@@ -181,8 +175,8 @@ class DeepQLearner(object):
                 if self.camera or [self.s, self.a, s_prime, r] not in self.samples:
                     self.samples.append([self.s, self.a, s_prime, r])
                 #self.state_actions[(tuple(self.s), self.a)] += 1
-                while len(self.samples) > self.max_samples:
-                    self.samples.pop(0)
+                #while len(self.samples) > self.max_samples:
+                #    self.samples.pop(0)
                 next_output = self.model(torch.Tensor([s_prime]).to(self.device))
                 next_output_Q, next_output_action = torch.max(next_output.data, 1)
                 self.a = next_output_action[0].item()
@@ -206,8 +200,8 @@ class DeepQLearner(object):
         if self.camera or newSample not in self.samples:
             self.samples.append(newSample)
             r += 5 if not self.camera else 0
-        while len(self.samples) > self.max_samples:
-            self.samples.pop(0)
+        #while len(self.samples) > self.max_samples:
+        #    self.samples.pop(0)
         self.model.eval()
         with torch.no_grad():
             if self.camera:
@@ -274,6 +268,13 @@ class DeepQLearner(object):
             s_state_list = []
             s_prime_state_list = []
         #rand.shuffle(self.samples)
+        probs = [exp(x[3] / 100) for x in self.samples]
+        total = sum(probs)
+        probs = [x / total for x in probs]
+        k = min(len(self.samples), self.max_samples)
+        sample_indices = np.random.choice(np.arange(len(probs)), k, p=probs, replace=False).tolist()
+        self.samples = [self.samples[i] for i in sample_indices]
+
         curr_samples = rand.sample(self.samples, len(self.samples))
         for sample in curr_samples:
             [s, a, s_prime, r] = sample
@@ -294,7 +295,13 @@ class DeepQLearner(object):
         #    sample_set[str(sample)] = sample
         #self.samples = list(sample_set.values())
 
-        self.samples.sort(key = lambda x: x[3])
+        #self.samples.sort(key = lambda x: (x[3], rand.random()))
+        """probs = [exp(x[3] / 100) for x in self.samples]
+        total = sum(probs)
+        probs = [x / total for x in probs]
+        k = min(len(self.samples), self.max_samples)
+        sample_indices = np.random.choice(np.arange(len(probs)), k, p=probs, replace=False).tolist()
+        self.samples = [self.samples[i] for i in sample_indices]"""
 
         permutation = torch.randperm(len(s_prime_list))
         minibatch_losses = []
