@@ -19,6 +19,13 @@
             ]
         },
         {
+            "name": "in",
+            "vars": [
+                {"item": ["planks1", "planks2", "planks3", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]},
+                {"inventory": ["inventory"]}
+            ]
+        },
+        {
             "name": "at",
             "vars": [
                 {"agent": ["player"]},
