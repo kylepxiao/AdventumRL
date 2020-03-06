@@ -21,7 +21,7 @@
         {
             "name": "in",
             "vars": [
-                {"item": ["planks1", "planks2", "planks3", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]},
+                {"item": ["planks1", "planks2", "planks3", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom"]},
                 {"inventory": ["inventory"]}
             ]
         },
@@ -467,7 +467,7 @@
             "reward": 75
         },
         {
-            "name": "cookPotato",
+            "name": "craftBakedPotato",
             "precondition": [
                 {
                     "name": "in",
@@ -490,7 +490,7 @@
             "reward": 75
         },
         {
-            "name": "cookRabbit",
+            "name": "craftCookedRabbit",
             "precondition": [
                 {
                     "name": "in",
@@ -513,7 +513,7 @@
             "reward": 75
         },
         {
-            "name": "makeBowl",
+            "name": "craftBowl",
             "precondition": [
                 {
                     "name": "in",
@@ -536,7 +536,7 @@
             "reward": 75
         },
         {
-            "name": "cookStew",
+            "name": "craftStew",
             "precondition": [
                 {
                     "name": "in",
