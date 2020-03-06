@@ -4,7 +4,7 @@
         "agent": ["player"],
         "inventory": ["inventory", "current"],
         "unlockable": ["door"],
-        "boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"],
+        "boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "mushroomBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"],
         "item": ["planks1", "planks2", "planks3", "coal1", "coal2", "rabbit", "carrot", "potato", "mushroom", "bakedPotato", "cookedRabbit", "bowl", "rabbitStew"]
     },
     "Items": {
@@ -41,7 +41,7 @@
         {
             "name": "notreached",
             "vars": [
-                {"boundary":  ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"]}
+                {"boundary":  ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "mushroomBoundary", "coalBoundary1",  "coalBoundary2", "exitBoundary"]}
             ]
         },
         {
@@ -173,6 +173,48 @@
                     "vars": [
                         {"agent": ["player"]},
                         {"boundary": ["plankBoundary3"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabMushroom", 
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["mushroomBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["mushroomBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["mushroomBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["mushroom"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["mushroomBoundary"]}
                     ]
                 }
             ],
