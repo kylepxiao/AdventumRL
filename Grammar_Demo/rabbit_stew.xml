@@ -14,22 +14,25 @@
       <DrawingDecorator>
         <!-- coordinates for cuboid are inclusive -->
         <DrawCuboid x1="-50" y1="227" z1="-50" x2="50" y2="227" z2="50" type="air" /> <!-- to clear old items-->
-        <DrawCuboid x1="-50" y1="223" z1="-50" x2="50" y2="226" z2="50" type="dirt" />           
+        <DrawCuboid x1="-50" y1="223" z1="-50" x2="50" y2="226" z2="50" type="dirt" />
         <DrawCuboid x1="-10" y1="223" z1="-10" x2="10" y2="226" z2="10" type="lava" />           <!-- lava floor -->
         <DrawCuboid x1="-2" y1="226" z1="-2" x2="2" y2="226" z2="2" type="monster_egg" variant="chiseled_brick" />
         <DrawCuboid x1="-1" y1="226" z1="-1" x2="1" y2="226" z2="1" type="dirt" />
         <DrawBlock x="-1"  y="226" z="-1" type="diamond_block" />
         <DrawItem x="-1" y="228" z="-1" type="coal" />
-        <DrawItem x="-1" y="228" z="-1" type="coal" />
-        <DrawItem x="-1" y="228" z="-1" type="planks" variant="spruce" />
-        <DrawItem x="-1" y="228" z="-1" type="planks" variant="spruce" />
-        <DrawItem x="-1" y="228" z="-1" type="planks" variant="spruce" />
+        <DrawItem x="-1" y="228" z="-1" type="coal_block" />
+        <DrawItem x="-1" y="228" z="-1" type="bowl" />
         <DrawItem x="-1" y="228" z="-1" type="rabbit" />
         <DrawItem x="-1" y="228" z="-1" type="carrot" />
         <DrawItem x="-1" y="228" z="-1" type="potato" />
         <DrawItem x="-1" y="228" z="-1" type="brown_mushroom" />
+        <DrawItem x="-100" y="228" z="-100" type="baked_potato" />
+        <DrawItem x="-100" y="228" z="-100" type="cooked_rabbit" />
+        <DrawItem x="-100" y="228" z="-100" type="rabbit_stew" />
+
+
       </DrawingDecorator>
-      <ServerQuitFromTimeUp timeLimitMs="150000" /> 
+      <ServerQuitFromTimeUp timeLimitMs="150000" />
       <ServerQuitWhenAnyAgentFinishes />
     </ServerHandlers>
   </ServerSection>
@@ -40,40 +43,15 @@
             <Placement x="0.5" y="227.0" z="0.5" />
         </AgentStart>
         <AgentHandlers>
-            <RewardForCollectingItem>
-                <Item reward="10" type="planks" variant="spruce" />
-                <Item reward="100" type="cooked_rabbit carrot baked_potato brown_mushroom" />
-                <Item reward="500" type="bowl" />
-                <Item reward="1000" type="rabbit_stew" />
-            </RewardForCollectingItem>
-            <RewardForSendingCommand reward="-1" />
-            <RewardForDiscardingItem>
-                <Item reward="-2" type="planks" />
-                <Item reward="-6" type="cooked_rabbit carrot baked_potato brown_mushroom" />
-            </RewardForDiscardingItem>
-            <RewardForTouchingBlockType>
-                <Block reward="-100.0" type="lava" behaviour="onceOnly"/>
-            </RewardForTouchingBlockType>
-            <!--<ContinuousMovementCommands turnSpeedDegs="480" />-->
             <DiscreteMovementCommands/>
             <SimpleCraftCommands />
             <InventoryCommands />
             <ObservationFromFullStats/>
-            <ObservationFromSubgoalPositionList>
-                <Point x="10" y="227" z="5" tolerance="1" description="ingredient" />
-                <Point x="7" y="227" z="-2" tolerance="1" description="ingredient" />
-                <Point x="8" y="227" z="-10" tolerance="1" description="ingredient" />
-                <Point x="-2" y="227" z="7" tolerance="1" description="ingredient" />
-                <Point x="-2" y="227" z="-9" tolerance="1" description="ingredient" />
-                <Point x="10" y="227" z="-4" tolerance="1" description="ingredient" />
-                <Point x="-8" y="227" z="0" tolerance="1" description="ingredient" />
-                <Point x="-8" y="227" z="-4" tolerance="1" description="ingredient" />
-                <Point x="-6" y="227" z="8" tolerance="1" description="ingredient" />
-            </ObservationFromSubgoalPositionList>
-            <ObservationFromFullInventory />
-            <AgentQuitFromCollectingItem>
-                <Item type="rabbit_stew" description="Supper's Up!!" />
-            </AgentQuitFromCollectingItem>
+            <ObservationFromFullInventory flat="false"/>
+            <RewardForTouchingBlockType>
+                <Block reward="-100.0" type="lava" behaviour="onceOnly"/>
+            </RewardForTouchingBlockType>
+            <RewardForSendingCommand reward="-1" />
             <AgentQuitFromTouchingBlockType>
                 <Block type="lava" />
             </AgentQuitFromTouchingBlockType>
