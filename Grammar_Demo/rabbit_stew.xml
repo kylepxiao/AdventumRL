@@ -19,14 +19,16 @@
         <DrawCuboid x1="-2" y1="226" z1="-2" x2="2" y2="226" z2="2" type="monster_egg" variant="chiseled_brick" />
         <DrawCuboid x1="-1" y1="226" z1="-1" x2="1" y2="226" z2="1" type="dirt" />
         <DrawBlock x="-1"  y="226" z="-1" type="diamond_block" />
-        <DrawItem x="-1" y="228" z="-1" type="coal" />
-        <DrawItem x="-1" y="228" z="-1" type="coal_block" />
-        <DrawItem x="-1" y="228" z="-1" type="bowl" />
-        <DrawItem x="-1" y="228" z="-1" type="rabbit" />
-        <DrawItem x="-1" y="228" z="-1" type="carrot" />
-        <DrawItem x="-1" y="228" z="-1" type="potato" />
-        <DrawItem x="-1" y="228" z="-1" type="brown_mushroom" />
+        <DrawItem x="-2" y="228" z="-1" type="coal" />
+        <DrawItem x="0" y="228" z="-2" type="coal_block" />
+        <DrawItem x="-1" y="228" z="0" type="oak_log" />
+        <DrawItem x="1" y="228" z="-1" type="rabbit" />
+        <DrawItem x="2" y="228" z="1" type="carrot" />
+        <DrawItem x="2" y="228" z="2" type="potato" />
+        <DrawItem x="-2" y="228" z="1" type="brown_mushroom" />
         <DrawItem x="-100" y="228" z="-100" type="baked_potato" />
+        <DrawItem x="-100" y="228" z="-100" type="bowl" />
+        <DrawItem x="-100" y="228" z="-100" type="oak_planks" />
         <DrawItem x="-100" y="228" z="-100" type="cooked_rabbit" />
         <DrawItem x="-100" y="228" z="-100" type="rabbit_stew" />
 

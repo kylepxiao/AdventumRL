@@ -8,7 +8,7 @@
       <min x="-1" y="228" z="-1"/>
       <max x="-1"  y="228" z="-1"/>
     </Grid>
-    <Grid name="bowlBoundary">
+    <Grid name="oak_logBoundary">
       <min x="-1" y="228" z="-1"/>
       <max x="-1"  y="228" z="-1"/>
     </Grid>

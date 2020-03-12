@@ -4,25 +4,18 @@
         "agent": ["player"],
         "inventory": ["inventory", "current"],
         "unlockable": ["door"],
-        "boundary": ["bowlBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"],
-        "item": ["coal", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
+        "boundary": ["oak_logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"],
+        "item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
     },
     "Items": {
-        "item": ["coal", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
+        "item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
     },
     "DefaultFacts": [
         {
             "name": "in",
             "vars": [
-                {"item": ["coal", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"], "inventory": ["inventory"]},
+                {"item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"], "inventory": ["inventory"]},
                 {"world": ["world"]}
-            ]
-        },
-        {
-            "name": "in",
-            "vars": [
-                {"item": ["coal", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]},
-                {"inventory": ["inventory"]}
             ]
         },
         {
@@ -41,7 +34,7 @@
         {
             "name": "notreached",
             "vars": [
-                {"boundary":  ["bowlBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"]}
+                {"boundary":   ["oak_logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"]}
             ]
         },
         {
@@ -306,19 +299,19 @@
             "reward": 0
         },
         {
-            "name": "grabBowl",
+            "name": "graboak_log",
             "precondition": [
                 {
                     "name": "notreached",
                     "vars": [
-                        {"boundary": ["bowlBoundary"]}
+                        {"boundary": ["oak_logBoundary"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["bowlBoundary"]}
+                        {"boundary": ["oak_logBoundary"]}
                     ]
                 }
             ],
@@ -326,13 +319,13 @@
                 {
                     "name": "reached",
                     "vars": [
-                        {"boundary": ["bowlBoundary"]}
+                        {"boundary": ["oak_logBoundary"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
-                        {"item": ["bowl"]},
+                        {"item": ["oak_log"]},
                         {"inventory": ["inventory"]}
                     ]
                 },
@@ -340,7 +333,7 @@
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["bowlBoundary"]}
+                        {"boundary": ["oak_logBoundary"]}
                     ]
                 }
             ],
@@ -383,7 +376,7 @@
             "reward": 75
         },
         {
-            "name": "cookPotato",
+            "name": "craftBakedPotato",
             "precondition": [
                 {
                     "name": "in",
@@ -406,7 +399,7 @@
             "reward": 75
         },
         {
-            "name": "cookRabbit",
+            "name": "craftCooked_Rabbot",
             "precondition": [
                 {
                     "name": "in",
@@ -429,7 +422,53 @@
             "reward": 75
         },
         {
-            "name": "cookStew",
+            "name": "craftOak_planks",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_log"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_planks"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft oak_planks",
+            "reward": 75
+        },
+        {
+            "name": "craftBowl",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_planks"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["bowl"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft bowl",
+            "reward": 75
+        },
+        {
+            "name": "craftRabbit_Stew",
             "precondition": [
                 {
                     "name": "in",
