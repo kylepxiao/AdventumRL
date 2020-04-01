@@ -6,7 +6,7 @@ taskArtifacts
 *pyc
 *.class
 *.log
-
+*.json
 *.index
 *.lock
 *.bin
