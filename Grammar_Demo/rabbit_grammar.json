@@ -1,0 +1,625 @@
+{
+    "Variables": {
+        "world": ["world"],
+        "agent": ["player"],
+        "inventory": ["inventory", "current"],
+        "unlockable": ["door"],
+        "boundary": ["oak_logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"],
+        "item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
+    },
+    "Items": {
+        "item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
+    },
+    "DefaultFacts": [
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"], "inventory": ["inventory"]},
+                {"world": ["world"]}
+            ]
+        },
+        {
+            "name": "at",
+            "vars": [
+                {"agent": ["player"]},
+                {"world": ["world"]}
+            ]
+        },
+        {
+            "name": "locked",
+            "vars": [
+                {"unlockable": ["door"]}
+            ]
+        },
+        {
+            "name": "notreached",
+            "vars": [
+                {"boundary":   ["oak_logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"]}
+            ]
+        },
+        {
+            "name": "by",
+            "vars": [
+                {"agent": ["player"]},
+                {"unlockable": ["door"]}
+            ]
+        }
+    ],
+    "Actions": [
+        {
+            "name": "grabPotato",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["potato"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["potatoBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabRabbit",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbit"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["rabbitBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabCarrot",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["carrot"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["carrotBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabCoal",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["coalBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["coalBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["coal"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabcoal_block",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["coal_blockBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coalBoundary2"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["coalBoundary2"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["coal_block"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["coal_blockBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "grabbrown_mushroom",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["brown_mushroomBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["brown_mushroomBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["brown_mushroomBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["brown_mushroom"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["brown_mushroomBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "graboak_log",
+            "precondition": [
+                {
+                    "name": "notreached",
+                    "vars": [
+                        {"boundary": ["oak_logBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["oak_logBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "reached",
+                    "vars": [
+                        {"boundary": ["oak_logBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_log"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["oak_logBoundary"]}
+                    ]
+                }
+            ],
+            "command": "reward 50",
+            "reward": 0
+        },
+        {
+            "name": "unlock",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbit_stew"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                },
+                {
+                    "name": "locked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                }
+            ],
+            "command": "discardCurrentItem",
+            "reward": 75
+        },
+        {
+            "name": "craftBakedPotato",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["potato", "coal"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["baked_potato"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft baked_potato",
+            "reward": 75
+        },
+        {
+            "name": "craftCooked_Rabbot",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbit", "baked_potato", "coal_block"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["cooked_rabbit"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft cooked_rabbit",
+            "reward": 75
+        },
+        {
+            "name": "craftOak_planks",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_log"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_planks"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft oak_planks",
+            "reward": 75
+        },
+        {
+            "name": "craftBowl",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["oak_planks"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["bowl"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft bowl",
+            "reward": 75
+        },
+        {
+            "name": "craftRabbit_Stew",
+            "precondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["baked_potato", "cooked_rabbit", "carrot", "brown_mushroom", "bowl"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"item": ["rabbit_stew"]},
+                        {"inventory": ["inventory"]}
+                    ]
+                }
+            ],
+            "command": "craft rabbit_stew",
+            "reward": 100
+        },
+        {
+            "name": "goal",
+            "precondition": [
+                {
+                    "name": "unlocked",
+                    "vars": [
+                        {"unlockable": ["door"]}
+                    ]
+                },
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                }
+            ],
+            "postcondition": [
+                {
+                    "name": "in",
+                    "vars": [
+                        {"agent": ["player"]},
+                        {"boundary": ["exitBoundary"]}
+                    ]
+                }
+            ],
+            "command": "quit",
+            "reward": 200
+        }
+
+    ],
+    "Goal": [
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks1"]},
+                {"boundary": ["plankBoundary1"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks2"]},
+                {"boundary": ["plankBoundary2"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks3"]},
+                {"boundary": ["plankBoundary3"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["potato"]},
+                {"boundary": ["potatoBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["rabbit"]},
+                {"boundary": ["rabbitBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["carrot"]},
+                {"boundary": ["carrotBoundary"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["coal1"]},
+                {"boundary": ["coalBoundary1"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["coal2"]},
+                {"boundary": ["coalBoundary2"]}
+            ],
+            "negate": false
+        },
+        {
+            "name": "in",
+            "vars": [
+                {"item": ["planks", "coal1", "coal2", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]},
+                {"inventory": ["inventory"]}
+            ],
+            "negate": false
+        }
+    ],
+    "Triggers": [
+        {
+            "name": "notreached",
+            "vars": [
+                {"boundary": ["plankBoundary1", "plankBoundary2", "plankBoundary3", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "coalBoundary1", "coalBoundary2", "exitBoundary"]}
+            ]
+        },
+        {
+            "name": "locked",
+            "vars": [
+                {"unlockable": ["door"]}
+            ]
+        }
+    ],
+    "Predicates": [
+        {
+            "name": "in",
+            "vars": [
+                {"P": ["P"]},
+                {"R": ["R"]}
+            ]
+        }
+    ],
+    "Rules": [
+        {
+        }
+    ]
+}

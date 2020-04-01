@@ -291,7 +291,7 @@ class GrammarMission:
         return
 
 parser = argparse.ArgumentParser(description='Run missions in Malmo')
-parser.add_argument("--mission_file", help='choose which mission file to run', default='./grammar_demo.xml')
+parser.add_argument("--mission_file", help='choose which mission file to run', default='./grammar_demo.xml') 
 parser.add_argument("--quest_file", help='choose file to specify quest entities', default='./quest_entities.xml')
 parser.add_argument("--grammar_file", help='choose file to specify logical grammar', default="./quest_grammar.json")
 parser.add_argument("--agent", help='choose which agent to run (TabQAgent, DQNAgent)', default="TabQAgent")
