@@ -21,14 +21,14 @@
         <DrawBlock x="-1"  y="226" z="-1" type="diamond_block" />
         <DrawItem x="-2" y="228" z="-1" type="coal" />
         <DrawItem x="0" y="228" z="-2" type="coal_block" />
-        <DrawItem x="-1" y="228" z="0" type="oak_log" />
+        <DrawItem x="-1" y="228" z="0" type="log" />
         <DrawItem x="1" y="228" z="-1" type="rabbit" />
         <DrawItem x="2" y="228" z="1" type="carrot" />
         <DrawItem x="2" y="228" z="2" type="potato" />
         <DrawItem x="-2" y="228" z="1" type="brown_mushroom" />
         <DrawItem x="-100" y="228" z="-100" type="baked_potato" />
         <DrawItem x="-100" y="228" z="-100" type="bowl" />
-        <DrawItem x="-100" y="228" z="-100" type="oak_planks" />
+        <DrawItem x="-100" y="228" z="-100" type="planks" />
         <DrawItem x="-100" y="228" z="-100" type="cooked_rabbit" />
         <DrawItem x="-100" y="228" z="-100" type="rabbit_stew" />
 

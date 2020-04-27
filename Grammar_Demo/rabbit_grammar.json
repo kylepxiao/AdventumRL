@@ -4,17 +4,17 @@
         "agent": ["player"],
         "inventory": ["inventory", "current"],
         "unlockable": ["door"],
-        "boundary": ["oak_logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"],
-        "item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
+        "boundary": ["logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"],
+        "item": ["coal", "log", "planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
     },
     "Items": {
-        "item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
+        "item": ["coal", "log", "planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"]
     },
     "DefaultFacts": [
         {
             "name": "in",
             "vars": [
-                {"item": ["coal", "oak_log", "oak_planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"], "inventory": ["inventory"]},
+                {"item": ["coal", "log", "planks", "coal_block", "rabbit", "carrot", "potato", "brown_mushroom", "baked_potato", "cooked_rabbit", "bowl", "rabbit_stew"], "inventory": ["inventory"]},
                 {"world": ["world"]}
             ]
         },
@@ -34,7 +34,7 @@
         {
             "name": "notreached",
             "vars": [
-                {"boundary":   ["oak_logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"]}
+                {"boundary":   ["logBoundary", "potatoBoundary", "rabbitBoundary", "carrotBoundary", "brown_mushroomBoundary", "coalBoundary",  "coal_blockBoundary", "exitBoundary"]}
             ]
         },
         {
@@ -299,19 +299,19 @@
             "reward": 0
         },
         {
-            "name": "graboak_log",
+            "name": "grablog",
             "precondition": [
                 {
                     "name": "notreached",
                     "vars": [
-                        {"boundary": ["oak_logBoundary"]}
+                        {"boundary": ["logBoundary"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["oak_logBoundary"]}
+                        {"boundary": ["logBoundary"]}
                     ]
                 }
             ],
@@ -319,13 +319,13 @@
                 {
                     "name": "reached",
                     "vars": [
-                        {"boundary": ["oak_logBoundary"]}
+                        {"boundary": ["logBoundary"]}
                     ]
                 },
                 {
                     "name": "in",
                     "vars": [
-                        {"item": ["oak_log"]},
+                        {"item": ["log"]},
                         {"inventory": ["inventory"]}
                     ]
                 },
@@ -333,7 +333,7 @@
                     "name": "in",
                     "vars": [
                         {"agent": ["player"]},
-                        {"boundary": ["oak_logBoundary"]}
+                        {"boundary": ["logBoundary"]}
                     ]
                 }
             ],
@@ -422,12 +422,12 @@
             "reward": 75
         },
         {
-            "name": "craftOak_planks",
+            "name": "craftplanks",
             "precondition": [
                 {
                     "name": "in",
                     "vars": [
-                        {"item": ["oak_log"]},
+                        {"item": ["log"]},
                         {"inventory": ["inventory"]}
                     ]
                 }
@@ -436,12 +436,12 @@
                 {
                     "name": "in",
                     "vars": [
-                        {"item": ["oak_planks"]},
+                        {"item": ["planks"]},
                         {"inventory": ["inventory"]}
                     ]
                 }
             ],
-            "command": "craft oak_planks",
+            "command": "craft planks",
             "reward": 75
         },
         {
@@ -450,7 +450,7 @@
                 {
                     "name": "in",
                     "vars": [
-                        {"item": ["oak_planks"]},
+                        {"item": ["planks"]},
                         {"inventory": ["inventory"]}
                     ]
                 }
