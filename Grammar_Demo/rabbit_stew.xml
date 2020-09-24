@@ -13,26 +13,25 @@
         <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1" />
       <DrawingDecorator>
         <!-- coordinates for cuboid are inclusive -->
-        <DrawCuboid x1="-50" y1="227" z1="-50" x2="50" y2="227" z2="50" type="air" /> <!-- to clear old items-->
+        <DrawCuboid x1="-50" y1="222" z1="-50" x2="50" y2="228" z2="50" type="air" /> <!-- to clear old items-->
         <DrawCuboid x1="-50" y1="223" z1="-50" x2="50" y2="226" z2="50" type="dirt" />
         <DrawCuboid x1="-10" y1="223" z1="-10" x2="10" y2="226" z2="10" type="lava" />           <!-- lava floor -->
         <DrawCuboid x1="-2" y1="226" z1="-2" x2="2" y2="226" z2="2" type="monster_egg" variant="chiseled_brick" />
         <DrawCuboid x1="-1" y1="226" z1="-1" x2="1" y2="226" z2="1" type="dirt" />
         <DrawBlock x="-1"  y="226" z="-1" type="diamond_block" />
-        <DrawItem x="-2" y="228" z="-1" type="coal" />
-        <DrawItem x="0" y="228" z="-2" type="coal_block" />
-        <DrawItem x="-1" y="228" z="0" type="oak_log" />
-        <DrawItem x="1" y="228" z="-1" type="rabbit" />
-        <DrawItem x="2" y="228" z="1" type="carrot" />
-        <DrawItem x="2" y="228" z="2" type="potato" />
-        <DrawItem x="-2" y="228" z="1" type="brown_mushroom" />
+        <DrawItem x="-1" y="228" z="0" type="coal" />
+        <DrawItem x="0" y="228" z="-1" type="coal_block" />
+        <DrawItem x="2" y="228" z="2" type="bowl" />
+        <DrawItem x="0" y="228" z="0" type="rabbit" />
+        <DrawItem x="1" y="228" z="-2" type="carrot" />
+        <DrawItem x="-2" y="228" z="-1" type="potato" />
+        <DrawItem x="-2" y="228" z="2" type="brown_mushroom" />
         <DrawItem x="-100" y="228" z="-100" type="baked_potato" />
         <DrawItem x="-100" y="228" z="-100" type="bowl" />
-        <DrawItem x="-100" y="228" z="-100" type="oak_planks" />
+        <DrawItem x="-100" y="228" z="-100" type="planks" />
         <DrawItem x="-100" y="228" z="-100" type="cooked_rabbit" />
         <DrawItem x="-100" y="228" z="-100" type="rabbit_stew" />
-
-
+        <DrawItem x="-100" y="228" z="-100" type="wooden_button" />
       </DrawingDecorator>
       <ServerQuitFromTimeUp timeLimitMs="150000" />
       <ServerQuitWhenAnyAgentFinishes />
@@ -43,6 +42,9 @@
         <Name>Chie</Name>
         <AgentStart>
             <Placement x="0.5" y="227.0" z="0.5" />
+            <Inventory>
+                <InventoryItem slot="0" type="coal" quantity="1"/>
+            </Inventory>
         </AgentStart>
         <AgentHandlers>
             <DiscreteMovementCommands/>
@@ -57,6 +59,9 @@
             <AgentQuitFromTouchingBlockType>
                 <Block type="lava" />
             </AgentQuitFromTouchingBlockType>
+            <AgentQuitFromCollectingItem>
+                    <Item type="rabbit_stew" description="Supper's Up!!"/>
+            </AgentQuitFromCollectingItem>
         </AgentHandlers>
     </AgentSection>
 

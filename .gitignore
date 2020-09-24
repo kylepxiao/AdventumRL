@@ -6,6 +6,7 @@ taskArtifacts
 *pyc
 *.class
 *.log
+*.log.gz
 *.json
 *.index
 *.lock
@@ -14,3 +15,4 @@ taskArtifacts
 *.properties
 *.h5
 *.txt
+*.dat
