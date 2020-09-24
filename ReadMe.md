@@ -1,12 +1,10 @@
 # AdventumRL 
 
-To get started, view grammar_demo folder
-
 ## Table of Contents
 
 1. [Overview](#overview)
 2. [Getting Started](#getting-started)
-   1. [Installation](#installation)
+   1. [Installation](#linux-installation)
    2. [Running Missions](#running-missions)
 3. [Additional Information](#additional-information)
    1. [Agents](#agents)
@@ -21,20 +19,40 @@ AdventumRL is an API framework that allows for complex, mission-based reinforcem
 
 ## Getting Started
 
-### Installation
+### Linux Installation 
 
-1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases )
-2. Install the Malmo dependencies for your OS: [Windows](https://github.com/microsoft/malmo/blob/master/doc/install_windows.md), [Linux](https://github.com/microsoft/malmo/blob/master/doc/install_linux.md), [Mac](https://github.com/microsoft/malmo/blob/master/doc/install_macosx.md) (Make sure to install the optional python modules as well)
-3. Download the latest release of [AdventumRL ](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
-4. Install the following pip modules: Textworld, Nose, PyTorch, and TKinter
-   - Linux
-     - `sudo pip3 install nose textworld torch`
-     - `sudo apt-get install python3-tk`
-5. In one terminal, go to the `Minecraft` folder and launch the client
-   - `sudo ./launchClient.sh`
-6. In a second terminal, go to the `Grammar_Demo` folder and run the `grammar_api.py`  file
+1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases ).
+2. Install the [Malmo dependencies ](https://github.com/microsoft/malmo/blob/master/doc/install_linux.md) (Make sure to install the optional python modules as well).
+3. Download the latest release of [AdventumRL ](https://github.com/kylepxiao/AdventumRL) and place the files into the same folder as the Malmo release.
+4. Install the following pip modules: Textworld 1.1.1 (or 1.1.0), Nose, PyTorch, and TKinter.
+    - `pip3 install nose torch`
+    - `pip3 install textworld==1.1.1`
+    - `apt-get install python3-tk`
+    - `sudo update-ca-certificates -f`
+
+5. In one terminal, go to the `Minecraft` folder of your Malmo installation and run `./launchClient.sh` to build and run Minecraft
+6. Once Minecraft has fully loaded and is at the start screen, in a second terminal, go to the `Grammar_Demo` folder and run `grammar_api.py` .
    - `python3 grammar_api.py`
-   - For more information about running missions, look at the Running Missions section
+   - For more information about running missions, look at the Running Missions section.
+
+### Windows Installation
+
+1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases ).
+2. Install the [Malmo dependencies](https://github.com/microsoft/malmo/blob/master/doc/install_windows.md).
+     - When adding MALMO_XSD_PATH to environment variables, make sure to add them to your PATH.
+3. Download the latest release of [AdventumRL ](https://github.com/kylepxiao/AdventumRL) and place the files into the same folder as the Malmo release.
+4. Download and setup [WSL](https://www.microsoft.com/en-us/p/ubuntu-2004-lts/9n6svws3rx71?activetab=pivot:overviewtab ) (Ubuntu18.04 or above is strongly recommended).
+5. In WSL, install the following pip modules: Textworld 1.1.1 (or 1.1.0), Nose, PyTorch, and TKinter.
+    - `pip3 install nose torch`
+    - `pip3 install textworld==1.1.1`
+    - `apt-get install python3-tk`
+    - `sudo update-ca-certificates -f`
+6. Setup [MobaXTerm](https://nickjanetakis.com/blog/using-wsl-and-mobaxterm-to-create-a-linux-dev-environment-on-windows).
+     - Make sure to add the display port on WSL based on your version.
+7. Open Powershell or Command Prompt and go to the `Minecraft` folder of your Malmo instalation and run `launchClient.bat` to build and run Minecraft.
+6. Once Minecraft has fully loaded and is at the start screen, in MobaXTerm, go to the `Grammar_Demo` folder and run the `grammar_api.py`  file.
+   - `python3 grammar_api.py`
+   - For more information about running missions, look at the Running Missions section.
 
 ### Running Missions
 
