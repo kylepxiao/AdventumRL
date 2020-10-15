@@ -1,38 +1,21 @@
 import numpy as np
 import random as rand
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import os
-from collections import defaultdict
-from math import exp, floor
 #from collections import deque
-
-def FF_weights_init_uniform(m):
-    classname = m.__class__.__name__
-    # for every Linear layer in a model..
-    if classname.find('Linear') != -1:
-        # apply a uniform distribution to the weights and a bias=0
-        m.weight.data.uniform_(-0.3, 0.3)
-        m.bias.data.fill_(0)
-
-def CNN_weights_init_uniform(m):
-    classname = m.__class__.__name__
-    # for every Linear layer in a model..
-    if classname.find('Linear') != -1:
-        # apply a uniform distribution to the weights and a bias=0
-        m.weight.data.uniform_(0, 0.003)
-        m.bias.data.fill_(0)
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size=31, hidden_size=20, num_classes=2):
         super(NeuralNet, self).__init__()
-        self.fc0 = nn.Linear(input_size, 256)
+
+        self.fc0 = nn.Linear(input_size, 31)
         self.activate0 = nn.LeakyReLU()
-        self.fc1 = nn.Linear(256, 64)
+        self.fc1 = nn.Linear(31, 31)
         self.activate1 = nn.LeakyReLU()
         self.dropout1 = nn.Dropout(p=0.05)
-        self.fc2 = nn.Linear(64, num_classes)
+        self.fc2 = nn.Linear(31, 23)
         self.activate2 = nn.LeakyReLU()
         self.dropout2 = nn.Dropout(p=0.05)
         self.fc3 = nn.Linear(23, 15)
@@ -41,18 +24,19 @@ class NeuralNet(nn.Module):
         self.fc4 = nn.Linear(15, num_classes)
 
     def forward(self, x):
+        # return self.nn_no_dropout(x)
         out = self.fc0(x)
         out = self.activate0(out)
-        out = self.fc1(out)
+        out = self.fc1(x)
         out = self.activate1(out)
         #out = self.dropout1(out)
         out = self.fc2(out)
-        #out = self.activate2(out)
+        out = self.activate2(out)
         #out = self.dropout2(out)
-        #out = self.fc3(out)
-        #out = self.activate3(out)
+        out = self.fc3(out)
+        out = self.activate3(out)
         #out = self.dropout3(out)
-        #out = self.fc4(out)
+        out = self.fc4(out)
         return out
 
 class CNN(nn.Module):
@@ -84,13 +68,12 @@ class DeepQLearner(object):
         input_size = 4, \
         num_actions = 2, \
         alpha = 0.2, \
-        gamma = 0.9, \
-        rar = 0.2, \
-        radr = 1, \
+        discount_factor = 0.5, \
+        epsilon = 0.2, \
+        epsilon_decay = 1, \
         dyna = 10, \
-        learning_rate = 0.002, \
-        batch_size = 32, \
-        clip = 1,  \
+        clip = 1, \
+        learning_rate = 0.2, \
         load_path = None, \
         save_path = None, \
         camera = False, \
@@ -99,40 +82,38 @@ class DeepQLearner(object):
         self.verbose = verbose
         self.input_size = input_size
         self.num_actions = num_actions
-        self.s = [0] * input_size
-        self.a = 0
+        self.state = [0] * input_size
+        self.action = 0
 
-        self.alpha = alpha
-        self.gamma = gamma
-        self.rar = rar
-        self.radr = radr
+        self.alpha = alpha # not used at all
+        self.discount_factor = discount_factor
+        self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
         self.dyna = dyna
-        self.max_samples = 512
         self.clip = clip
-        self.samples = []
-        self.batch_size = batch_size
+        self.max_samples = 100
         self.camera = camera
-        self.gamma_dropout = 0
-        #self.state_actions = defaultdict(int)
+        self.learning_rate = learning_rate
+        self.samples = []
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        if not camera:
-            self.model = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
-            self.model.apply(FF_weights_init_uniform)
+        if not self.camera:
+            self.policy_net = NeuralNet(input_size = input_size, num_classes=num_actions).to(self.device)
         else:
-            self.model = CNN(input_size = input_size, num_classes=num_actions).to(self.device)
-            self.model.apply(CNN_weights_init_uniform)
+            self.policy_net = CNN(input_size = input_size, num_classes=num_actions).to(self.device)
+
         # Loss and optimizer
         self.criterion = nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.optimizer = torch.optim.Adam(self.policy_net.parameters(), lr=learning_rate)
 
         # Load saved model
         self.save_path = save_path
+
         if load_path != None and os.path.exists(save_path):
-            checkpoint = torch.load(load_path)
-            self.model.load_state_dict(checkpoint['model_state_dict'])
+            checkpoint = torch.load(load_path, map_location=self.device)
+            self.policy_net.load_state_dict(checkpoint['model_state_dict'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            self.model.eval()
+            self.policy_net.eval()
 
         self.losses = []
 
@@ -144,113 +125,68 @@ class DeepQLearner(object):
         @summary: Update the state without updating the Q-table
         @param s: The new state
         @returns: The selected action
+
+        Specifically called for the start state
         """
-        self.model.eval()
+        self.policy_net.eval()
         with torch.no_grad():
-            self.s = s
+            self.state = s
             if self.camera:
-                output = self.model(torch.Tensor([s[0]]).to(self.device), torch.Tensor([s[1]]).to(self.device))
+                output = self.policy_net(torch.Tensor([s[0]]).to(self.device), torch.Tensor([s[1]]).to(self.device))
             else:
-                output = self.model(torch.Tensor([s]).to(self.device))
+                output = self.policy_net(torch.Tensor([s]).to(self.device))
             output_Q, output_action = torch.max(output.data, 1)
             action = output_action[0].item()
-        if self.rar < rand.random():
             return action
-        else:
-            if self.verbose: print("RANDOM ACTION")
-            return rand.randint(0, self.num_actions - 1)
-            #least_common = min([(self.state_actions[(tuple(self.s), a)], self.s, a) for a in range(self.num_actions)])
-            #return least_common[2]
 
-    def query_dyna(self,s_prime,r):
-        """
-        @summary: Does NOT update the Q table and returns an action
-        @param s_prime: The new state
-        @param r: The reward
-        @returns: The selected action
-        """
-        if self.rar < rand.random():
-            self.model.eval()
-            with torch.no_grad():
-                if self.camera or [self.s, self.a, s_prime, r] not in self.samples:
-                    self.samples.append([self.s, self.a, s_prime, r])
-                #self.state_actions[(tuple(self.s), self.a)] += 1
-                #while len(self.samples) > self.max_samples:
-                #    self.samples.pop(0)
-                next_output = self.model(torch.Tensor([s_prime]).to(self.device))
-                next_output_Q, next_output_action = torch.max(next_output.data, 1)
-                self.a = next_output_action[0].item()
-        else:
-            self.a = rand.randint(0, self.num_actions - 1)
-        self.s = s_prime
-        return self.a
-
-    def clear_dyna(self):
-        self.samples = []
-        #self.state_actions = defaultdict(int)
-
-    def query(self,s_prime,r):
+    def query(self,next_state,reward):
         """
         @summary: Update the Q table and return an action
-        @param s_prime: The new state
-        @param r: The reward
+        @param next_state: The new state
+        @param reward: The reward
         @returns: The selected action
         """
-        newSample = [self.s, self.a, s_prime, r]
-        if self.camera or newSample not in self.samples:
-            self.samples.append(newSample)
-            r += 5 if not self.camera else 0
-        #while len(self.samples) > self.max_samples:
-        #    self.samples.pop(0)
-        self.model.eval()
+        # add sample to array and pop if greater than max
+        self.samples.append([self.state, self.action, next_state, reward])
+        while len(self.samples) > self.max_samples:
+            self.samples.pop()
+        reward += 5 if not self.camera else 0
+        # query target net for action and calculate expected reward
+        self.policy_net.eval()
         with torch.no_grad():
             if self.camera:
-                next_output = self.model(torch.Tensor([s_prime[0]]).to(self.device), torch.Tensor([s_prime[1]]).to(self.device))
+                next_output = self.policy_net(torch.Tensor([s_prime[0]]).to(self.device), torch.Tensor([s_prime[1]]).to(self.device))
             else:
-                next_output = self.model(torch.Tensor([s_prime]).to(self.device))
-            if self.verbose: print(next_output)
+                next_output = self.policy_net(torch.Tensor([s_prime]).to(self.device))
+            
+            next_output = self.policy_net(torch.Tensor([next_state]).to(self.device))
+            if self.verbose: print("model output: ", next_output)
             next_output_Q, next_output_action = torch.max(next_output.data, 1)
             next_action = next_output_action[0].item()
-            if self.gamma_dropout > rand.random():
-                expected_reward = torch.Tensor([r])
-            else:
-                expected_reward = r + self.gamma * next_output_Q[0].item()
-            if self.verbose: print(expected_reward)
+            expected_reward = reward + self.discount_factor * next_output_Q[0].item()
 
-        self.model.train()
+        # set 
+        self.policy_net.train()
         if self.camera:
-            output = self.model(torch.Tensor([self.s[0]]).to(self.device), torch.Tensor([self.s[1]]).to(self.device))
+            output = self.policy_net(torch.Tensor([self.s[0]]).to(self.device), torch.Tensor([self.s[1]]).to(self.device))
         else:
-            output = self.model(torch.Tensor([self.s]).to(self.device))
+            output = self.policy_net(torch.Tensor([self.s]).to(self.device))
         output_Q, output_action = torch.max(output.data, 1)
         label = torch.Tensor()
         label.data = output.clone()
-        label[0][self.a] = expected_reward
+        label[0][self.action] = expected_reward
         loss = self.criterion(output, label)
         self.optimizer.zero_grad()
         loss.backward()
-        nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
         self.optimizer.step()
         self.losses.append(loss.item())
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
+        self.state = next_state
+        self.action = next_action if self.epsilon < rand.random() else rand.randint(0, self.num_actions - 1)
+        self.epsilon *= self.epsilon_decay
 
-        if self.rar < rand.random():
-            self.a = next_action
-        else:
-            if self.verbose: print("RANDOM ACTION")
-            self.a = rand.randint(0, self.num_actions - 1)
-            #least_common = min([(self.state_actions[(tuple(self.s), a)], self.s, a) for a in range(self.num_actions)])
-            #self.a = least_common[2]
-            #self.state_actions[(tuple(self.s), self.a)] += 1
-        self.rar *= self.radr
-
-        #if newSample not in self.samples:
-        #    self.samples.append(newSample)
-        #while len(self.samples) > self.max_samples:
-        #    self.samples.pop()
-
-        self.s = s_prime
-        #if self.verbose: print("s =", s_prime,"a =",self.a,"r =",r)
-        return self.a
+        if self.verbose: print("s =", next_state,"a =",self.action,"reward =",reward)
+        return self.action
 
     def run_dyna(self):
         """
@@ -259,7 +195,6 @@ class DeepQLearner(object):
         """
         if len(self.samples) == 0:
             return
-
         s_list = []
         a_list = []
         s_prime_list = []
@@ -267,97 +202,99 @@ class DeepQLearner(object):
         if self.camera:
             s_state_list = []
             s_prime_state_list = []
-        #rand.shuffle(self.samples)
-        probs = [exp(x[3] / 100) for x in self.samples]
-        total = sum(probs)
-        probs = [x / total for x in probs]
-        k = min(len(self.samples), self.max_samples)
-        sample_indices = np.random.choice(np.arange(len(probs)), k, p=probs, replace=False).tolist()
-        self.samples = [self.samples[i] for i in sample_indices]
-
         curr_samples = rand.sample(self.samples, len(self.samples))
         for sample in curr_samples:
-            [s, a, s_prime, r] = sample
+            [s, a, next_state, reward] = sample
             if self.camera:
                 s_list.append(s[0])
                 a_list.append(a)
-                s_prime_list.append(s_prime[0])
-                r_list.append(r)
+                s_prime_list.append(next_state[0])
+                r_list.append(reward)
                 s_state_list.append(s[1])
-                s_prime_state_list.append(s_prime[1])
+                s_prime_state_list.append(next_state[1])
             else:
                 s_list.append(s)
                 a_list.append(a)
-                s_prime_list.append(s_prime)
-                r_list.append(r)
-        #sample_set = {}
-        #for sample in reversed(self.samples):
-        #    sample_set[str(sample)] = sample
-        #self.samples = list(sample_set.values())
+                s_prime_list.append(next_state)
+                r_list.append(reward)
+        sample_set = {}
+        for sample in reversed(self.samples):
+            sample_set[str(sample)] = sample
+        self.samples = list(sample_set.values())
+        self.samples.sort(key = lambda x: x[3])
 
-        #self.samples.sort(key = lambda x: (x[3], rand.random()))
-        """probs = [exp(x[3] / 100) for x in self.samples]
-        total = sum(probs)
-        probs = [x / total for x in probs]
-        k = min(len(self.samples), self.max_samples)
-        sample_indices = np.random.choice(np.arange(len(probs)), k, p=probs, replace=False).tolist()
-        self.samples = [self.samples[i] for i in sample_indices]"""
+        self.policy_net.eval()
+        with torch.no_grad():
+            next_output = self.policy_net(torch.Tensor(s_prime_list).to(self.device))
+            next_output_Q, next_output_action = torch.max(next_output.data, 1)
+            expected_reward = torch.Tensor(r_list).to(self.device) + self.discount_factor * next_output_Q
 
-        permutation = torch.randperm(len(s_prime_list))
-        minibatch_losses = []
-        s_tensor = torch.Tensor(s_list).to(self.device)
-        s_prime_tensor = torch.Tensor(s_prime_list).to(self.device)
-        r_tensor = torch.Tensor(r_list).to(self.device)
+        self.policy_net.train()
         if self.camera:
-            s_state_tensor =torch.Tensor(s_state_list).to(self.device)
-            s_prime_state_tensor =torch.Tensor(s_prime_state_list).to(self.device)
-        for i in range(0, len(s_prime_list), self.batch_size):
-            indices = permutation[i:i+self.batch_size]
-            self.model.eval()
+            output = self.policy_net(torch.Tensor([s_prime[0]]).to(self.device), torch.Tensor([s_prime[1]]).to(self.device))
+        else:
+            output = self.policy_net(torch.Tensor([s_prime]).to(self.device))
+        output_Q, output_action = torch.max(output.data, 1)
+        label = torch.Tensor()
+        label.data = output.clone()
+        for i in range(len(label)):
+            label[i, a_list[i]] = expected_reward[i]
+        loss = self.criterion(output, label)
+        self.optimizer.zero_grad()
+        loss.backward()
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
+        self.optimizer.step()
+        self.losses.append(loss.item())
+        return loss.item()
+
+    
+    def query_dyna(self,next_state,reward):
+        """
+        UNUSED METHOD
+
+        @summary: Does NOT update the Q table and returns an action
+        @param next_state: The new state
+        @param reward: The reward
+        @returns: The selected action
+        """
+        if self.epsilon < rand.random():
+            self.policy_net.eval()
             with torch.no_grad():
-                if self.gamma_dropout > rand.random():
-                    expected_reward = r_tensor[indices]
-                else:
-                    if self.camera:
-                        next_output = self.model(s_prime_tensor[indices], s_prime_state_tensor[indices])
-                    else:
-                        next_output = self.model(s_prime_tensor[indices])
-                    next_output_Q, next_output_action = torch.max(next_output.data, 1)
-                    expected_reward = r_tensor[indices] + self.gamma * next_output_Q
+                if self.camera or [self.s, self.a, s_prime, r] not in self.samples:
+                    self.samples.append([self.s, self.a, s_prime, r])
+                while len(self.samples) > self.max_samples:
+                    self.samples.pop()
+                next_output = self.policy_net(torch.Tensor([next_state]).to(self.device))
+                next_output_Q, next_output_action = torch.max(next_output.data, 1)
+                self.action = next_output_action[0].item()
+        else:
+            self.action = rand.randint(0, self.num_actions - 1)
+        self.state = next_state
+        return self.action
 
-            self.model.train()
-            if self.camera:
-                output = self.model(s_tensor[indices], s_state_tensor[indices])
-            else:
-                output = self.model(s_tensor[indices])
-            output_Q, output_action = torch.max(output.data, 1)
-
-            label = torch.Tensor()
-            label.data = output.clone()
-            for i in range(len(label)):
-                k = indices[i].item()
-                label[i, a_list[k]] = expected_reward[i]
-
-            loss = self.criterion(output, label)
-            self.optimizer.zero_grad()
-            loss.backward()
-            nn.utils.clip_grad_norm_(self.model.parameters(), self.clip)
-            self.optimizer.step()
-            minibatch_losses.append(loss.item())
-
-        avg_loss = sum(minibatch_losses) / len(minibatch_losses)
-        self.losses.append(avg_loss)
-        return avg_loss
+    def clear_dyna(self):
+        self.samples = []
 
     def save(self):
         torch.save({
-            'model_state_dict': self.model.state_dict(),
+            'model_state_dict': self.policy_net.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             }, self.save_path)
 
     def plot_loss(self):
-        import matplotlib.pyplot as plt
         prices_length = 10
         ravgs = [sum(self.losses[i:i+prices_length])/prices_length for i in range(len(self.losses)-prices_length+1)]
         plt.plot(ravgs)
+        plt.xlabel("Iteration Number")
+        plt.ylabel("Average Loss")
+        plt.title("Average of loss across " + str(prices_length) + " iterations")
         plt.show()
+        plt.savefig("./graphs/DQN_Avg_Loss_graph.png")
+
+        plt.plot(self.losses)
+        plt.xlabel("Iteration Number")
+        plt.ylabel("Loss")
+        plt.title("Overall Loss")
+        plt.show()
+        plt.savefig("./graphs/DQN_Loss_graph.png")
+

@@ -11,8 +11,6 @@ from parse_grammar import GrammarParser
 from models.Agent import Agent
 from models.TabQAgent import TabQAgent
 from models.DQNAgent import DQNAgent
-from models.CameraDQNAgent import CameraDQNAgent
-from models.DoubleDQNAgent import DoubleDQNAgent
 import MalmoPython
 import json
 import logging
@@ -59,13 +57,14 @@ class GrammarLogic:
 @summary: Holds all information for the currently executing mission, calls everything else
 '''
 class GrammarMission:
-    def __init__(self, mission_file='./grammar_demo.xml', quest_file='./quest_entities.xml', grammar_file="./quest_grammar.json", agent=None, log="off"):
+    def __init__(self, mission_file='./grammar_demo.xml', quest_file='./quest_entities.xml', grammar_file="./quest_grammar.json", agent=None, repeats=100, verbose=False):
         self.mission_file = mission_file
         self.quest_file = quest_file
         self.grammar_file = grammar_file
         self.grammar_logic = GrammarLogic(grammar_file)
+        self.verbose = verbose
         self.agent = agent
-        self.log = False if log is 'off' else True
+        self.repeats = repeats
 
     '''
     @summary: Parses the quest and mission files to create the initial world state
@@ -73,7 +72,7 @@ class GrammarMission:
     '''
     def getInitialWorldState(self):
         state_list = set(self.grammar_logic.defaultFacts)
-        # define globa  l objects and propositions
+        # define global objects and propositions
         entities = {}
         objectVars = {}
         objectProps = {}
@@ -169,13 +168,14 @@ class GrammarMission:
     @summary: Sets the current agent to a different one
     @param agent: The new agent to run the mission with
     '''
-    def setAgent(self, agent: Agent):
+    def setAgent(self, agent: Agent, verbose=False):
         self.agent = agent(
             LogicalAgentHost(
                 initialState = self.getInitialWorldState(),
                 actions = self.grammar_logic.logicalActions,
                 goal = self.grammar_logic.goal,
-                triggers = self.grammar_logic.triggers
+                triggers = self.grammar_logic.triggers,
+                verbose = verbose
             )
         )
 
@@ -225,10 +225,10 @@ class GrammarMission:
     '''
     @summary: Runs the current mission
     '''
-    def run_mission(self, num_repeats=5000): # Running the mission (taken from grammar_demo.py)
+    def run_mission(self): # Running the mission (taken from grammar_demo.py)
         # -- set up the mission -- #
         with open(self.mission_file, 'r') as f:
-            print("Loading mission from %s" % self.mission_file)
+            if self.verbose: print("Loading mission from %s" % self.mission_file)
             mission_xml = f.read()
             my_mission = MalmoPython.MissionSpec(mission_xml, True)
         # add 20% holes for interest
@@ -241,15 +241,14 @@ class GrammarMission:
 
         checkpoint_iter = 100
 
-        #if self.agent.host.receivedArgument("test"):
-        #    num_repeats = 1
-        #else:
-        #    num_repeats = 150
+        if self.agent.host.receivedArgument("test"):
+            num_repeats = 1
+        else:
+            num_repeats = self.repeats
 
         cumulative_rewards = []
         for i in range(num_repeats):
-            print()
-            print('Repeat %d of %d' % ( i+1, num_repeats ))
+            if self.verbose: print('\n Repeat %d of %d' % ( i+1, num_repeats ))
 
             my_mission_record = MalmoPython.MissionRecordSpec()
 
@@ -264,52 +263,47 @@ class GrammarMission:
                     else:
                         time.sleep(2.5)
 
-            print("Waiting for the mission to start", end=' ')
+            if self.verbose: print("\n Waiting for the mission to start", end=' ')
             world_state = self.agent.host.getWorldState()
             while not world_state.has_mission_begun:
-                print(".", end="")
+                if self.verbose: print(".", end="")
                 time.sleep(0.1)
                 world_state = self.agent.host.getWorldState()
                 for error in world_state.errors:
                     print("Error:",error.text)
-            print()
 
             # -- run the agent in the world -- #
             cumulative_reward = self.agent.run()
-            print('Cumulative reward: %d' % cumulative_reward)
-            # cumulative_rewards += [ cumulative_reward ]
+            if self.verbose: print('\n Cumulative reward: %d' % cumulative_reward)
+            cumulative_rewards += [ cumulative_reward ]
 
-            if self.log and (i % checkpoint_iter == 0):
+            if i % checkpoint_iter == 0:
                 self.agent.logOutput()
 
             # -- clean up -- #
             time.sleep(0.5) # (let the Mod reset)
-
-        print("Done.")
-
-        print()
-        #print("Cumulative rewards for all %d runs:" % num_repeats)
-        #print(cumulative_rewards)
+        self.agent.learner.plot_loss()
+        if self.verbose: 
+            print("Done.")
+            print("\n Cumulative rewards for all %d runs:" % num_repeats)
+            print(cumulative_rewards)
         return
 
 parser = argparse.ArgumentParser(description='Run missions in Malmo')
-parser.add_argument("--mission_file", help='choose which mission file to run', default='./grammar_demo.xml')
+parser.add_argument("--mission_file", help='choose which mission file to run', default='./grammar_demo.xml') 
 parser.add_argument("--quest_file", help='choose file to specify quest entities', default='./quest_entities.xml')
 parser.add_argument("--grammar_file", help='choose file to specify logical grammar', default="./quest_grammar.json")
 parser.add_argument("--agent", help='choose which agent to run (TabQAgent, DQNAgent)', default="TabQAgent")
-parser.add_argument("--log", help='whether to record logs for a mission', default="off")
+parser.add_argument("--repeats", help='How many times the agent is run (default=100)', type=int, default=100)
+parser.add_argument("--verbose", help='Provides more detailed info about the mission run', action='store_true', default=False)
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    mission = GrammarMission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file, log=args.log)
+    mission = GrammarMission(mission_file=args.mission_file, quest_file=args.quest_file, grammar_file=args.grammar_file, repeats=args.repeats, verbose=args.verbose)
     if args.agent == 'TabQAgent':
-        mission.setAgent(TabQAgent)
+        mission.setAgent(TabQAgent, args.verbose)
     elif args.agent == 'DQNAgent':
-        mission.setAgent(DQNAgent)
-    elif args.agent == 'CameraDQNAgent':
-        mission.setAgent(CameraDQNAgent)
-    elif args.agent == 'DoubleDQNAgent':
-        mission.setAgent(DoubleDQNAgent)
+        mission.setAgent(DQNAgent, args.verbose)
     else:
         print("unrecognized agent")
     mission.run_mission()

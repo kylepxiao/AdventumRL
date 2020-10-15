@@ -90,24 +90,20 @@ class MalmoLogicState(State):
         triggerstr = ''.join(map(str, triggerflags))
         return "%d:%d|%s" % (int(self.entities[entity].x), int(self.entities[entity].z), actionstr + ":" + triggerstr)
 
-    def getStateEmbedding(self, entity='player', includePos=True):
+    def getStateEmbedding(self, entity='player'):
         if self.world_bounds is None:
             actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
             triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
             xValue = 1 / (1 + exp(float(self.entities[entity].x)))
             zValue = 1 / (1 + exp(float(self.entities[entity].z)))
             return [xValue, zValue] + actionflags + triggerflags
-        elif includePos:
+        else:
             (x1, y1, z1), (x2, y2, z2) = self.world_bounds.roundPosition()
             actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
             triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
             xValue = [1 if round(self.entities[entity].x) == i else 0 for i in range(x1, x2+1, 1)]
             zValue = [1 if round(self.entities[entity].z) == i else 0 for i in range(z1, z2+1, 1)]
             return xValue + zValue + actionflags + triggerflags
-        else:
-            actionflags = [1 if self.is_applicable(action) else 0 for action in self.actions]
-            triggerflags = [1 if self.is_fact(trigger) else 0 for trigger in self.triggers]
-            return actionflags + triggerflags
 
     def getRelationalKnowledgeGraph(self):
         graph = []
@@ -193,7 +189,7 @@ class MalmoLogicState(State):
 
 
 class LogicalAgentHost(MalmoPython.AgentHost):
-    def __init__(self, initialState = None, actions=[], goal=None, triggers=[]):
+    def __init__(self, initialState = None, actions=[], goal=None, triggers=[], verbose=False):
         super().__init__()
         self.state = initialState
         self.state.goal = goal
@@ -204,6 +200,7 @@ class LogicalAgentHost(MalmoPython.AgentHost):
         self.initialState = self.state.copy()
         self.pastHeuristic = self.initialState.goalHeuristic()
         self.heuristicReward = 15
+        self.verbose = verbose
 
     def updateLogicState(self, world_state):
         self.state.updateLogicState(world_state)
@@ -215,7 +212,7 @@ class LogicalAgentHost(MalmoPython.AgentHost):
         return [action for action in self.state.all_applicable_actions()]
 
     def rewardValue(self):
-        if self.reward != 0:
+        if self.reward != 0 and self.verbose:
             print("-----\nLOGICAL STATE CHANGE REWARD\n-----")
         """if self.state.goalHeuristic() > self.pastHeuristic:
             self.pastHeuristic = self.state.goalHeuristic()

@@ -1,5 +1,7 @@
 # AdventumRL 
 
+To get started, view grammar_demo folder
+
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -21,12 +23,13 @@ AdventumRL is an API framework that allows for complex, mission-based reinforcem
 
 ### Installation
 
+For Mac or Linux:
 1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases )
-2. Install the Malmo dependencies for your OS: [Windows](https://github.com/microsoft/malmo/blob/master/doc/install_windows.md), [Linux](https://github.com/microsoft/malmo/blob/master/doc/install_linux.md), [Mac](https://github.com/microsoft/malmo/blob/master/doc/install_macosx.md) (Make sure to install the optional python modules as well)
+2. Install the Malmo dependencies for your OS: [Linux](https://github.com/microsoft/malmo/blob/master/doc/install_linux.md), [Mac](https://github.com/microsoft/malmo/blob/master/doc/install_macosx.md) (Make sure to install the optional python modules as well)
 3. Download the latest release of [AdventumRL ](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
 4. Install the following pip modules: Textworld, Nose, PyTorch, and TKinter
    - Linux
-     - `sudo pip3 install nose textworld torch`
+     - `sudo pip3 install nose torch textworld==1.1.0 matplotlib`
      - `sudo apt-get install python3-tk`
 5. In one terminal, go to the `Minecraft` folder and launch the client
    - `sudo ./launchClient.sh`
@@ -34,6 +37,22 @@ AdventumRL is an API framework that allows for complex, mission-based reinforcem
    - `python3 grammar_api.py`
    - For more information about running missions, look at the Running Missions section
 
+
+For Windows:
+1. Download the latest pre-built release of [Malmo]( https://github.com/Microsoft/malmo/releases ) and download the Windows dependencies [here](https://github.com/microsoft/malmo/blob/master/doc/install_windows.md)
+    a. When adding MALMO_XSD_PATH to environment variables, make sure to add them to your PATH
+2. Download the latest release of [AdventumRL](https://github.gatech.edu/kxiao36/Malmo_Grammar) and place the files into the same folder as the Malmo release from before
+3. Download and setup [WSL] (https://www.microsoft.com/en-us/p/ubuntu-2004-lts/9n6svws3rx71?activetab=pivot:overviewtab) (Please download Ubuntu version 18.04 or above)
+4. Install the following pip modules: Textworld, Nose, PyTorch, and TKinter
+     - `sudo pip3 install nose torch future pillow textworld==1.1.0 matplotlib`
+     - `sudo apt-get install python3-tk`
+     - `sudo update-ca-certificates -f`
+5. Setup [MobaXTerm] (https://nickjanetakis.com/blog/using-wsl-and-mobaxterm-to-create-a-linux-dev-environment-on-windows)
+     - Make sure to add the display port on wsl based on your version of wsl
+6. Open Powershell and go to the `Minecraft` folder to launch the client 
+     - `sudo ./launchClient.sh`
+7. In MobaXTerm, go to the `Grammar_Demo` folder and run the `grammar_api.py`  file
+     - `python3 grammar_api.py`
 ### Running Missions
 
 When running a mission, you must specify a mission file, quest file, grammar file, and an agent. By default, the grammar_api will use the default files and TabQAgent for a sample cliff-walking exercise. 
